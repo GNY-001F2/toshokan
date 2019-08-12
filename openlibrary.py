@@ -18,27 +18,40 @@
 # json is needed to convert the requested data into useable dicts
 
 import requests, json
-# access the openlibs database and grab the information from there
-def get_openlibs_data(isbn: str)->dict:
-    return requester.(isbn) #TODO
-   
 
 '''
-Runs 
-'''    
-def if __name__=="__main__": #TODO
-    
+Takes the book's ID type and sends it to the Open Libraries database. Supported
+types are all that the Open Library API supports: ISBN, LCCN, OCLC and OLID
+Receives data formatted in JSON with all the relevant info.
+Converts the received JSON data into a python dictionary.
+Returns the dictionary to the caller.
+'''
+def _get_openlibs_data(idtype: str, bookid: int) -> dict:
+    # WIP
+    return \      
+        json.load(requester.(f'https://openlibrary.org/api/books?'
+                             'bibkeys={idtype}:{isbn}&jscmd=data&format=json'))
+   
+if __name__=="__main__": #WIP
+    import argparse    
     parser = \
         argparse.ArgumentParser(description = "Given an idenitifier, returns "
                                 "information about a book as contained in the "
-                                "Open Library database")
+                                "Open Library database.")
     
-    parser.addargument("ISBN", type = str, help = "The ISBN-13 " 
-                       "identifier of a book.")
-    # parser.addargument("-i", "--isbn10", type = str, help = "The ISBN-10 " 
-                       "identifier of a book.")
-    # parser.addargument("--isbn9", type = str, help = "The ISBN-9 " 
-                       "identifier of a book.")
-    # parser.addargument("-l", "--lccn", type = str, help = "The LCCN " 
-                       "identifier of a book.") TBD
-   
+    parser.add_argument("book_id", type = str, help = "The identifier of a " 
+                        "book. Default assumption is that the ID is an ISBN.",
+                        metavar = "ID")
+    # TODO. Let's first get ISBN lookups working.
+    # group = parser.add_mutually_exclusive_group()
+    # group.add_argument("-l", "--lccn", action="store_const", const = 1,
+    #                    default = 0, type = str,
+    #                    help = "The ID is now an LCCN type.")
+    # group.add_argument("-o", "--oclc", action="store_const", const = 1,
+    #                    default = 0, type = str,
+    #                    help = "The ID is now an OCLC type.")
+    # group.add_argument("--olid", action="store_const", const = 1,
+    #                    default = 0, type = str, 
+    #                    help = "The ID is now an OCLC type.")
+    # NOTE: ISBN is temporary, will be replaced by code from the parser later
+    olib_results = _get_openlibs_data("ISBN", parser.parse_args().book_id)
