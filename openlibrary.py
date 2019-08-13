@@ -29,8 +29,9 @@ Returns the dictionary to the caller.
 def _get_openlibs_data(idtype: str, bookid: int) -> dict:
     # WIP
     return \      
-        json.load(requester.(f'https://openlibrary.org/api/books?'
-                             'bibkeys={idtype}:{isbn}&jscmd=data&format=json'))
+        json.loads(\
+            requests.get(f'https://openlibrary.org/api/books?bibkeys'
+                         '={idtype}:{isbn}&jscmd=data&format=json').content)
    
 if __name__=="__main__": #WIP
     import argparse    
@@ -44,14 +45,21 @@ if __name__=="__main__": #WIP
                         metavar = "ID")
     # TODO. Let's first get ISBN lookups working.
     # group = parser.add_mutually_exclusive_group()
+    # group.add_argument("-i", "--isbn", action="store_const", const = 1,
+    #                    default = 1, type = str,
+    #                    help = "The ID is processed as an ISBN. Enabled by " 
+    #                    "default.")
     # group.add_argument("-l", "--lccn", action="store_const", const = 1,
     #                    default = 0, type = str,
-    #                    help = "The ID is now an LCCN type.")
+    #                    help = "The ID is processed as an LCCN.")
     # group.add_argument("-o", "--oclc", action="store_const", const = 1,
     #                    default = 0, type = str,
-    #                    help = "The ID is now an OCLC type.")
+    #                    help = "The ID is processed as an OCLC.")
     # group.add_argument("--olid", action="store_const", const = 1,
     #                    default = 0, type = str, 
-    #                    help = "The ID is now an OCLC type.")
+    #                    help = "The ID is processed as an OLID type.")
     # NOTE: ISBN is temporary, will be replaced by code from the parser later
-    olib_results = _get_openlibs_data("ISBN", parser.parse_args().book_id)
+    idtype = "ISBN"
+    # NOTE: 'parser' will be changed to group when I enable the flags for the
+    #       ArgumentParser
+    olib_results = _get_openlibs_data(idtype, parser.parse_args().book_id)
