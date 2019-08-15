@@ -1,4 +1,4 @@
-# toshokan 
+# toshokan
 # Copyright (C) 2019 Aayush Agarwal
 #
 # This program is free software; you can redistribute it and/or modify it under
@@ -16,7 +16,6 @@
 
 current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
 
-
 class book:
     '''
     A book contains some information about itself. This book class does the
@@ -30,11 +29,8 @@ class book:
             * OCLC: list, but I don't know anything about it currently.
                 * may or may not be unique, but stored as a list for ease of
                 programming
-        * Unique ID: dict, This is the ID that is used by the API which is
-          called.
-        * For example, if the Open Library API is used, then the  data stored
-          is {'openlibrary':'OLID'}
-        * For a book manually added to the database, this will be {'N/A':'N/A'}
+        * Unique ID: int, this is the ID that will identify the book in your
+          library
         * Title: str, title of the book
         * Author(s): list, names of the authors who wrote this book
         * Pages: int, the number of pages in the book
@@ -51,9 +47,7 @@ class book:
                      # Any other IDs added to current_id_types will
                      # automatically receive N/A
                  },
-                 unique_id={
-                     'N/A': "N/A"
-                 },
+                 unique_id= -1
                  title="_unknown", authors=["Anonymous"],
                  pages=0,
                  publishers=["_unknown/Self-published"],
@@ -84,4 +78,9 @@ class book:
         '''
         # NOTE: To be implemented at a much later date
         __init__(self)  # for now just call defaults to prevent funky behaviour
+        pass
+    def __init__(self, relevant_metadata: dict):
+        '''
+        Takes the relevant_metadata and creates a book out of it.
+        '''
         pass

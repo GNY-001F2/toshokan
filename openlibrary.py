@@ -26,13 +26,34 @@ Receives data formatted in JSON with all the relevant info.
 Converts the received JSON data into a python dictionary.
 Returns the dictionary to the caller.
 '''
-def _get_openlibs_data(idtype: str, bookid: int) -> dict:
+def get_openlibs_data(idtype: str, bookid: int) -> dict:
     # WIP
     return \      
         json.loads(\
             requests.get(f'https://openlibrary.org/api/books?bibkeys'
                          '={idtype}:{isbn}&jscmd=data&format=json').content)
-   
+
+def process_openlibs_data(openlib_data_json: dict) -> dict:
+    '''
+    We have the relevant j
+    '''
+    try:
+        nonlocal openlib_data = openlib_data_json.popitem()
+        # We can do this because the json data given by the Open Library API
+        # call only has one key with a sub-dictionary placed inside it.
+    except KeyError:
+        # NOTE: I don't yet know how to correctly handle this exception so I
+        # am returning an empty dictionary currently
+        # This should not crash the program, and instead the user should be
+        # able to call another database for the correct date.
+        return {}
+    book_constructor_dict = {}
+    try:
+        for publishers in openlib_data['publishers']:
+            book_constructor_dict['publishers'] = [publisher['name'] for publisher in publishers]
+    except KeyError:
+        book_constructor_dict['publishers'] = ["_unknown/Self-Published"]
+    # NOTE: WIP
 if __name__=="__main__": #WIP
     import argparse    
     parser = \
