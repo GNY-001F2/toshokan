@@ -17,7 +17,9 @@
 # Requests is needed to get the data from libraries
 # json is needed to convert the requested data into useable dicts
 
+current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
 import requests, json
+from re import findall
 
 '''
 Takes the book's ID type and sends it to the Open Libraries database. Supported
@@ -35,27 +37,47 @@ def get_openlibs_data(idtype: str, bookid: int) -> dict:
 
 def process_openlibs_data(openlib_data_json: dict) -> dict:
     '''
-    We have the relevant j
+    We have the relevant json data, so let's do this
     '''
     try:
-        nonlocal openlib_data = openlib_data_json.popitem()
-        # We can do this because the json data given by the Open Library API
-        # call only has one key with a sub-dictionary placed inside it.
+        openlib_data = openlib_data_json.popitem()[1]
+        # We can do this because the json data given by the Open
+        # Library API call only has one key with a second level dictionary
+        # placed inside it.
+        # When we call popitem(), we get a tuple with
+        # ("search_key", actual_data) and we only need actual_data
     except KeyError:
-        # NOTE: I don't yet know how to correctly handle this exception so I
-        # am returning an empty dictionary currently
-        # This should not crash the program, and instead the user should be
-        # able to call another database for the correct date.
+        # NOTE: I don't yet know how to correctly handle this
+        # exception so I am returning an empty dictionary currently
+        # This should not crash the program, and instead the user
+        # should be able to call another database for the correct date.
         return {}
-    book_constructor_dict = {}
+    # relevant_metadata = {}
     try:
-        for publishers in openlib_data['publishers']:
-            book_constructor_dict['publishers'] = [publisher['name'] for publisher in publishers]
+        publishers = openlib_data['publishers']
+        nonlocal relevant_metadata['publishers'] = \
+            [publisher['name'] for publisher in publishers]
     except KeyError:
-        book_constructor_dict['publishers'] = ["_unknown/Self-Published"]
+        relevant_metadata['publishers'] = ["Unknown/Self-Published"]
     # NOTE: WIP
+            # Let's add each id_type to the list of identifiers
+    for id_type in current_id_types:
+        try:
+            nonlocal identifiers[id_type] = identifiers[id_type]
+        except KeyError:
+            nonlocal identifiers[id_type] = ["N/A"]
+    relevant_metadata['identifiers'] = identifiers
+    page_data = openlib_data['pagination']
+    # only doing this because the data is stored inconsistently and I don't
+    # want the stupid situation where pagination stores multiple sets of digits
+    # and I grab the wrong set
+    relevant_metadata['pages'] = max(list(map(int, re.findall(r'\d+',
+                                                              page_data))))
+    # quick and dirty; should work for 99.9% of books in existence
+    # credit: https://www.geeksforgeeks.org/python-extract-numbers-from-string/
+
 if __name__=="__main__": #WIP
-    import argparse    
+    import argparse
     parser = \
         argparse.ArgumentParser(description = "Given an identifier, returns "
                                 "information about a book as contained in the "

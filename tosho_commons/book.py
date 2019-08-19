@@ -48,8 +48,7 @@ class book:
                      # automatically receive N/A
                  },
                  unique_id= -1
-                 title="_unknown", authors=["Anonymous"],
-                 pages=0,
+                 title="_unknown", authors=["Anonymous"], pages=0,
                  publishers=["_unknown/Self-published"],
                  publish_date="_unknown"):
         '''
