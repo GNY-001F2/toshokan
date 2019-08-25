@@ -61,11 +61,16 @@ def process_openlibs_data(openlib_data_json: dict) -> dict:
         relevant_metadata['publishers'] = ["Unknown/Self-Published"]
     # NOTE: WIP
             # Let's add each id_type to the list of identifiers
+    openlib_identifiers = openlib_data['identifiers']  # dictionary
     for id_type in current_id_types:
         try:
-            nonlocal identifiers[id_type] = identifiers[id_type]
+            nonlocal identifiers[id_type] = openlib_identifiers[id_type]
+            # Stored as a list, in case a single book has more than one
+            # value for one ID type
         except KeyError:
             nonlocal identifiers[id_type] = ["N/A"]
+            # If openlib_data[identifiers] does not contain data for a type of
+            # ID we are supporting, then we append it with ["N/A"]
     relevant_metadata['identifiers'] = identifiers
     page_data = openlib_data['pagination']
     # only doing this because the data is stored inconsistently and I don't
@@ -75,6 +80,8 @@ def process_openlibs_data(openlib_data_json: dict) -> dict:
                                                               page_data))))
     # quick and dirty; should work for 99.9% of books in existence
     # credit: https://www.geeksforgeeks.org/python-extract-numbers-from-string/
+    relevant_metadata['title']=openlib_data['title']
+    relevant_metadata['publish_date']=openlib_data['publish_date']
 
 if __name__=="__main__": #WIP
     import argparse
