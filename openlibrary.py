@@ -28,12 +28,21 @@ Receives data formatted in JSON with all the relevant info.
 Converts the received JSON data into a python dictionary.
 Returns the dictionary to the caller.
 '''
-def get_openlibs_data(idtype: str, bookid: int) -> dict:
-    # WIP
-    return \      
-        json.loads(\
-            requests.get(f'https://openlibrary.org/api/books?bibkeys'
-                         '={idtype}:{isbn}&jscmd=data&format=json').content)
+def get_openlibs_data(idtype: str, book_id: int) -> dict:
+    #print('https://openlibrary.org/api/books'
+    #      f'?bibkeys={idtype}:{book_id}'
+    #      '&jscmd=data&format=json')
+    openlib_request_result = requests.get('https://openlibrary.org/api/books'
+                                          f'?bibkeys={idtype}:{book_id}'
+                                          '&jscmd=data&format=json')
+    print(openlib_request_result.content)
+    openlib_data_json = json.loads(openlib_request_result.content)
+    return openlib_data_json
+    #return \
+    #    json.loads(\
+    #        requests.get('https://openlibrary.org/api/books?bibkeys'
+    #                     f'={idtype}:{bookid}&jscmd=data&'
+    #                     'format=json').content)
 
 def process_openlibs_data(openlib_data_json: dict) -> dict:
     '''
@@ -42,33 +51,36 @@ def process_openlibs_data(openlib_data_json: dict) -> dict:
     try:
         openlib_data = openlib_data_json.popitem()[1]
         # We can do this because the json data given by the Open
-        # Library API call only has one key with a second level dictionary
-        # placed inside it.
-        # When we call popitem(), we get a tuple with
-        # ("search_key", actual_data) and we only need actual_data
+        # Library API call only has one key with a second level
+        # dictionary placed inside it.
+        # When we call dict.popitem(), we get a tuple with
+        # ("search_key", ...actual_data...) and we only need actual_data
     except KeyError:
         # NOTE: I don't yet know how to correctly handle this
         # exception so I am returning an empty dictionary currently
         # This should not crash the program, and instead the user
         # should be able to call another database for the correct date.
         return {}
-    # relevant_metadata = {}
+    relevant_metadata = {}
     try:
-        publishers = openlib_data['publishers']
-        nonlocal relevant_metadata['publishers'] = \
-            [publisher['name'] for publisher in publishers]
+        openlib_publishers = openlib_data['publishers']
+        relevant_metadata['publishers'] = [publisher['name'] for publisher in
+                                           openlib_publishers]
+        relevant_metadata['publish_date'] = openlib_data['publish_date']
     except KeyError:
         relevant_metadata['publishers'] = ["Unknown/Self-Published"]
+        relevant_metadata['publish_date'] = ["_unknown"]
     # NOTE: WIP
             # Let's add each id_type to the list of identifiers
     openlib_identifiers = openlib_data['identifiers']  # dictionary
+    identifiers = {}
     for id_type in current_id_types:
         try:
-            nonlocal identifiers[id_type] = openlib_identifiers[id_type]
+            identifiers[id_type] = openlib_identifiers[id_type]
             # Stored as a list, in case a single book has more than one
             # value for one ID type
         except KeyError:
-            nonlocal identifiers[id_type] = ["N/A"]
+            identifiers[id_type] = ["N/A"]
             # If openlib_data[identifiers] does not contain data for a type of
             # ID we are supporting, then we append it with ["N/A"]
     relevant_metadata['identifiers'] = identifiers
@@ -76,12 +88,23 @@ def process_openlibs_data(openlib_data_json: dict) -> dict:
     # only doing this because the data is stored inconsistently and I don't
     # want the stupid situation where pagination stores multiple sets of digits
     # and I grab the wrong set
-    relevant_metadata['pages'] = max(list(map(int, re.findall(r'\d+',
-                                                              page_data))))
+    relevant_metadata['pages'] = max(list(map(int, findall(r'\d+',
+                                                           page_data))))
     # quick and dirty; should work for 99.9% of books in existence
     # credit: https://www.geeksforgeeks.org/python-extract-numbers-from-string/
-    relevant_metadata['title']=openlib_data['title']
-    relevant_metadata['publish_date']=openlib_data['publish_date']
+    relevant_metadata['title'] = openlib_data['title']
+    relevant_metadata['publish_date'] = openlib_data['publish_date']
+    try:
+        openlib_authors = openlib_data['authors']
+        relevant_metadata['authors'] = [author['name'] for author in
+                                        openlib_authors]
+    except KeyError:
+        relevant_metadata['authors'] = ["unknown"]
+    #try:
+    #    openlib_authors = openlib_data['authors']
+    #    relevant_metadata['authors'] = [author['name'] for author in
+    #                                    openlib_authors]
+    return relevant_metadata
 
 if __name__=="__main__": #WIP
     import argparse
@@ -93,11 +116,10 @@ if __name__=="__main__": #WIP
                         "book. Default assumption is that the ID is an ISBN.",
                         metavar = "ID")
     # TODO. Let's first get ISBN lookups working.
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-i", "--isbn", action="store_const", const = 1,
-                       default = 1, type = str,
-                       help = "The ID is processed as an ISBN. Enabled by "
-                       "default.")
+    #group = parser.add_mutually_exclusive_group()
+    parser.add_argument("-i", "--isbn", action="store_const", const=1,
+                       default=1, #type=str,
+                       help="The ID is processed as an ISBN. Enabled default.")
     # group.add_argument("-l", "--lccn", action="store_const", const = 1,
     #                    default = 0, type = str,
     #                    help = "The ID is processed as an LCCN.")
@@ -112,4 +134,7 @@ if __name__=="__main__": #WIP
     idtype = "ISBN"
     # NOTE: 'parser' will be changed to group when I enable the flags for the
     #       ArgumentParser
-    olib_results = _get_openlibs_data(idtype, parser.parse_args().book_id)
+    args = parser.parse_args()
+    olib_results = get_openlibs_data(idtype, args.book_id)
+    relevant_metadata = process_openlibs_data(olib_results)
+    print(relevant_metadata)

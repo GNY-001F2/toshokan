@@ -47,7 +47,6 @@ class book:
                      # Any other IDs added to current_id_types will
                      # automatically receive N/A
                  },
-                 unique_id= -1
                  title="_unknown", authors=["Anonymous"], pages=0,
                  publishers=["_unknown/Self-published"],
                  publish_date="_unknown"):
@@ -62,7 +61,9 @@ class book:
             except KeyError:
                 self.identifiers[id_type] = ["N/A"]
             # Any other error is beyond the scope of this at the moment
-        self.unique_id = unique_id
+        # NOTE:this will be updated by whatever process adds the book to the
+        # collection (TODO)
+        self.unique_id = -1
         self.title = title
         for author in authors:
             self.authors.append(author)
