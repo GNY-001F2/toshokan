@@ -14,64 +14,78 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# Requests is needed to get the data from libraries
-# json is needed to convert the requested data into useable dicts
+import logging
+logger = logging.getLogger(__name__)
 
-current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
-import requests, json
-from re import findall
 
-'''
-Takes the book's ID type and sends it to the Open Libraries database. Supported
-types are all that the Open Library API supports: ISBN, LCCN, OCLC and OLID
-Receives data formatted in JSON with all the relevant info.
-Converts the received JSON data into a python dictionary.
-Returns the dictionary to the caller.
-'''
 def get_openlibs_data(idtype: str, book_id: int) -> dict:
-    #print('https://openlibrary.org/api/books'
-    #      f'?bibkeys={idtype}:{book_id}'
-    #      '&jscmd=data&format=json')
-    openlib_request_result = requests.get('https://openlibrary.org/api/books'
-                                          f'?bibkeys={idtype}:{book_id}'
-                                          '&jscmd=data&format=json')
-    print(openlib_request_result.content)
-    openlib_data_json = json.loads(openlib_request_result.content)
+    """
+    Looks for information on a book from the Open Library database.
+
+    Sends a GET request using the Open Library book lookup JSON API. Returns
+    a dictionary created from the result, which is a JSON object containing
+    all the metadata about the book.
+
+    arguments:
+        idtype  -- The type of ID being looked up. Supported values are ISBN,
+                   OCLC, LCCN and OLID.
+        book_id -- The value of the idtype being looked up. Any integer value
+                   is safe for input.
+    return value:
+        openlib_data_json -- the dictionary containing the parsed JSON metadata
+                             about the book
+    """
+    from requests import get
+    from json import loads
+    openlib_request_result = get('https://openlibrary.org/api/books?bibkeys'
+                                 f'={idtype}:{book_id}&jscmd=data&format=json')
+    openlib_data_json = loads(openlib_request_result.content)
     return openlib_data_json
-    #return \
-    #    json.loads(\
-    #        requests.get('https://openlibrary.org/api/books?bibkeys'
-    #                     f'={idtype}:{bookid}&jscmd=data&'
-    #                     'format=json').content)
 
 def process_openlibs_data(openlib_data_json: dict) -> dict:
-    '''
-    We have the relevant json data, so let's do this
-    '''
+    """
+    Process the result from Open Library and extract all relevant information.
+
+    arguments:
+        openlib_data_json -- 
+    """
+    from re import findall
+    current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
     try:
         openlib_data = openlib_data_json.popitem()[1]
         # We can do this because the json data given by the Open
         # Library API call only has one key with a second level
-        # dictionary placed inside it.
+        # dictionary placed inside it in the format
+        # {"search_key":{...actual_data...}}
+        #
         # When we call dict.popitem(), we get a tuple with
-        # ("search_key", ...actual_data...) and we only need actual_data
-    except KeyError:
-        # NOTE: I don't yet know how to correctly handle this
-        # exception so I am returning an empty dictionary currently
-        # This should not crash the program, and instead the user
-        # should be able to call another database for the correct date.
+        # ("search_key", {...actual_data...}) and we only
+        # need actual_data. Since search_key can change based on
+        # the request, it is not a reliable value to work with.
+    except KeyError as e:
+        # If this fails, it means either some catastrophic failure
+        # happened or the search result was empty.
+        logger.warning(e)
+        logger.warning("The search results are empty! Book not found on Open"
+                       " Library.")
         return {}
     relevant_metadata = {}
+    # Extract publisher names
     try:
         openlib_publishers = openlib_data['publishers']
-        relevant_metadata['publishers'] = [publisher['name'] for publisher in
-                                           openlib_publishers]
+        publishers = [publisher['name'] for publisher in openlib_publishers]
+        relevant_metadata['publishers'] = sorted(publishers)
+    except KeyError as e:
+        logger.warning(e)
+        logger.warning("The book has no known publishers.")
+        relevant_metadata['publishers'] = ["UNKNOWN"]
+    # Extract the date of publishing
+    try:
         relevant_metadata['publish_date'] = openlib_data['publish_date']
-    except KeyError:
-        relevant_metadata['publishers'] = ["Unknown/Self-Published"]
-        relevant_metadata['publish_date'] = ["_unknown"]
-    # NOTE: WIP
-            # Let's add each id_type to the list of identifiers
+    except KeyError as e:
+        logger.warning(e)
+        logger.warning("The publishing date is unknown.")
+        relevant_metadata['publish_date'] = ["UNKNOWN"]
     openlib_identifiers = openlib_data['identifiers']  # dictionary
     identifiers = {}
     for id_type in current_id_types:
@@ -138,3 +152,4 @@ if __name__=="__main__": #WIP
     olib_results = get_openlibs_data(idtype, args.book_id)
     relevant_metadata = process_openlibs_data(olib_results)
     print(relevant_metadata)
+    
