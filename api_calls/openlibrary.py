@@ -17,8 +17,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-
-def get_openlibs_data(idtype: str, book_id: int) -> dict:
+def _get_openlib_data(idtype: str, book_id: int) -> dict:
     """
     Looks for information on a book from the Open Library database.
 
@@ -42,7 +41,7 @@ def get_openlibs_data(idtype: str, book_id: int) -> dict:
     openlib_data_json = loads(openlib_request_result.content)
     return openlib_data_json
 
-def process_openlibs_data(openlib_data_json: dict) -> dict:
+def _process_openlib_data(openlib_data_json: dict) -> dict:
     """
     Process the result from Open Library and extract all relevant information.
 
@@ -97,18 +96,28 @@ def process_openlibs_data(openlib_data_json: dict) -> dict:
             # ID we are supporting, then we append it with ["N/A"]
     relevant_metadata['identifiers'] = identifiers
     try:
+        check_pagination = False
         relevant_metadata['pages'] = openlib_data['number_of_pages']
     except KeyError:
-        logger.warning("The key \'number_of_pages\' not found in the request."
-                       "\nTrying key 'pagination'")
-        page_data = openlib_data['pagination']
-        # only doing this because the data is stored inconsistently and I don't
-        # want the stupid situation where pagination stores multiple sets of
-        # digits and I grab the wrong set
-        relevant_metadata['pages'] = max(list(map(int, findall(r'\d+',
-                                                               page_data))))
-        # quick and dirty; should work for 99.9% of books in existence
-        # credit: https://www.geeksforgeeks.org/python-extract-numbers-from-   string/
+        logger.warning("WARNING: The key \'number_of_pages\' not found in the "
+                       "request.\nTrying key \'pagination\'")
+        check_pagination = True
+    if(check_pagination):
+        try:
+            page_data = openlib_data['pagination']
+            # only doing this because the data is stored inconsistently and I
+            # don't want the stupid situation where pagination stores multiple
+            # sets of digits and I grab the wrong set
+            relevant_metadata['pages'] = max(list(map(int,
+                                                      findall(r'\d+',
+                                                              page_data))))
+            # quick and dirty; should work for 99.9% of books in existence
+            # credit:
+            # https://www.geeksforgeeks.org/python-extract-numbers-from-string/
+        except:
+            logger.warning("WARNING: The key \'pagination\' was also not found!"
+                           "\nPage count unknown!")
+            relevant_metadata['pages'] = -1
     try:
         relevant_metadata['title'] = openlib_data['title']
     except KeyError:
@@ -126,6 +135,18 @@ def process_openlibs_data(openlib_data_json: dict) -> dict:
     #    relevant_metadata['authors'] = [author['name'] for author in
     #                                    openlib_authors]
     return relevant_metadata
+
+def openlib_results(idtype='ISBN', book_id=0) -> dict:
+    """
+    Recieves search query and passes it to _get_openlib_data() to get the data
+    from The Open Library.
+
+    Then calls _process_openlib_data to convert it into the format usable by
+    toshokan\'s database and returns it to the caller.
+    """
+    olib_data = _get_openlib_data(idtype, book_id)
+    olib_data_processed = _process_openlib_data()
+    return olib_data_processed
 
 if __name__=="__main__":  #NOTE:WIP
     import argparse
@@ -156,6 +177,7 @@ if __name__=="__main__":  #NOTE:WIP
     # NOTE: 'parser' will be changed to group when I enable the flags for the
     #       ArgumentParser
     args = parser.parse_args()
-    olib_results = get_openlibs_data(idtype, args.book_id)
-    relevant_metadata = process_openlibs_data(olib_results)
+    olib_results = _get_openlib_data(idtype, args.book_id)
+    print(olib_results)
+    relevant_metadata = _process_openlib_data(olib_results)
     print(relevant_metadata)

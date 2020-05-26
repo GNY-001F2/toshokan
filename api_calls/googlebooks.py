@@ -39,19 +39,19 @@ def _get_googlebooks_data(idtype: str, book_id: int) -> dict:
     googlebooks_request_result = get('https://www.googleapis.com/books/v1/'
                                      f'volumes?q={idtype}:{book_id}')
     googlebooks_data_json = loads(googlebooks_request_result.content)
-    return openlib_data_json
+    return googlebooks_data_json
 
-def _process_openlibs_data(openlib_data_json: dict) -> dict:
+def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
     """
     Process the result from Open Library and extract all relevant information.
 
     arguments:
-        openlib_data_json -- 
+        googlebooks_data_json -- 
     """
     from re import findall
     current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
     try:
-        openlib_data = openlib_data_json.popitem()[1]
+        googlebooks_data = googlebooks_data_json.popitem()[1]
         # We can do this because the json data given by the Open
         # Library API call only has one key with a second level
         # dictionary placed inside it in the format
@@ -70,41 +70,41 @@ def _process_openlibs_data(openlib_data_json: dict) -> dict:
     relevant_metadata = {}
     # Extract publisher names
     try:
-        openlib_publishers = openlib_data['publishers']
-        publishers = [publisher['name'] for publisher in openlib_publishers]
+        googlebooks_publishers = googlebooks_data['publishers']
+        publishers = [publisher['name'] for publisher in googlebooks_publishers]
         relevant_metadata['publishers'] = sorted(publishers)
     except KeyError:
         logger.warning("WARNING: The book has no known publishers.")
         relevant_metadata['publishers'] = ["UNKNOWN"]
     # Extract the date of publishing
     try:
-        relevant_metadata['publish_date'] = openlib_data['publish_date']
+        relevant_metadata['publish_date'] = googlebooks_data['publish_date']
     except KeyError:
         logger.warning("WARNING: The publishing date is unknown.")
         relevant_metadata['publish_date'] = ["UNKNOWN"]
-    openlib_identifiers = openlib_data['identifiers']  # dictionary
+    googlebooks_identifiers = googlebooks_data['identifiers']  # dictionary
     identifiers = {}
     for id_type in current_id_types:
         try:
-            identifiers[id_type] = openlib_identifiers[id_type]
+            identifiers[id_type] = googlebooks_identifiers[id_type]
             # Stored as a list, in case a single book has more than one
             # value for one ID type
         except KeyError:
             logger.warning(f"WARNING: There is no {id_type} for this book.")
             identifiers[id_type] = ["N/A"]
-            # If openlib_data[identifiers] does not contain data for a type of
+            # If googlebooks_data[identifiers] does not contain data for a type of
             # ID we are supporting, then we append it with ["N/A"]
     relevant_metadata['identifiers'] = identifiers
     try:
         check_pagination = False
-        relevant_metadata['pages'] = openlib_data['number_of_pages']
+        relevant_metadata['pages'] = googlebooks_data['number_of_pages']
     except KeyError:
         logger.warning("WARNING: The key \'number_of_pages\' not found in the "
                        "request.\nTrying key \'pagination\'")
         check_pagination = True
     if(check_pagination):
         try:
-            page_data = openlib_data['pagination']
+            page_data = googlebooks_data['pagination']
             # only doing this because the data is stored inconsistently and I
             # don't want the stupid situation where pagination stores multiple
             # sets of digits and I grab the wrong set
@@ -119,33 +119,33 @@ def _process_openlibs_data(openlib_data_json: dict) -> dict:
                            "\nPage count unknown!")
             relevant_metadata['pages'] = -1
     try:
-        relevant_metadata['title'] = openlib_data['title']
+        relevant_metadata['title'] = googlebooks_data['title']
     except KeyError:
         logger.warning("WARNING: This book is untitled.")
         relevant_metadata['title'] = "Untitled"
     try:
-        openlib_authors = openlib_data['authors']
+        googlebooks_authors = googlebooks_data['authors']
         relevant_metadata['authors'] = [author['name'] for author in
-                                        openlib_authors]
+                                        googlebooks_authors]
     except KeyError:
         logger.warning("WARNING: This book has no known authors!")
         relevant_metadata['authors'] = ["unknown"]
     #try:
-    #    openlib_authors = openlib_data['authors']
+    #    googlebooks_authors = googlebooks_data['authors']
     #    relevant_metadata['authors'] = [author['name'] for author in
-    #                                    openlib_authors]
+    #                                    googlebooks_authors]
     return relevant_metadata
 
-def openlib_results(idtype='ISBN', book_id=0) -> dict:
+def googlebooks_results(idtype='ISBN', book_id=0) -> dict:
     """
-    Recieves search query and passes it to _get_openlibs_data() to get the data
+    Recieves search query and passes it to _get_googlebooks_data() to get the data
     from The Open Library.
 
-    Then calls _process_openlibs_data to convert it into the format usable by
+    Then calls _process_googlebooks_data to convert it into the format usable by
     toshokan\'s database and returns it to the caller.
     """
-    olib_data = _get_openlibs_data(idtype, book_id)
-    olib_data_processed = _process_openlibs_data()
+    olib_data = _get_googlebooks_data(idtype, book_id)
+    olib_data_processed = _process_googlebooks_data()
     return olib_data_processed
 
 if __name__=="__main__":  #NOTE:WIP
@@ -177,7 +177,7 @@ if __name__=="__main__":  #NOTE:WIP
     # NOTE: 'parser' will be changed to group when I enable the flags for the
     #       ArgumentParser
     args = parser.parse_args()
-    olib_results = _get_openlibs_data(idtype, args.book_id)
+    olib_results = _get_googlebooks_data(idtype, args.book_id)
     print(olib_results)
-    relevant_metadata = _process_openlibs_data(olib_results)
+    relevant_metadata = _process_googlebooks_data(olib_results)
     print(relevant_metadata)
