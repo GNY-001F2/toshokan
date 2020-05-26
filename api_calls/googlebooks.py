@@ -50,8 +50,31 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
     """
     from re import findall
     current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
+    # NOTE: Based on preliminary searches, Google Books does not appear to
+    # catalogue LCCN values in the JSON reference for each volume. This is
+    # highly unusual as their API reference explicitly mentions lccn as a valid
+    # search query.
+    # Yet the JSON data structure does not store an LCCN-type
+    # industryIdentifiers key based on their JSON reference.
+    # Querying a valid LCCN from the Library of Congress catalogue did not
+    # return any results, with totalItems = 0, but the ISBN of that same book
+    # returned a valid result.
+    # The OCLC-type is also not present in the JSON reference, but I have not
+    # yet attempted to search for results using it.
+    # The experimental status of the v1 API might be the reason for
+    # this. Further investigation is needed.
     try:
-        googlebooks_data = googlebooks_data_json.popitem()[1]
+        if(googlebooks_data_json['totalItems'] > 1):
+            raise ValueError
+        #elif(googlebooks_data_json['totalItems'] < 1):
+            #raise KeyError
+    except ValueError:
+        logger.warning("WARNING: More than one result found for requested "
+                       "search. This means someone has tried to pass a more "
+                       "general search result to this scraper. Continuing "
+                       "with first search result.")
+        # NOTE: Possible avenue for future feature creep and bloatism :^)
+    googlebooks_data = googlebooks_data_json
         # We can do this because the json data given by the Open
         # Library API call only has one key with a second level
         # dictionary placed inside it in the format
@@ -65,7 +88,7 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
         # If this fails, it means either some catastrophic failure
         # happened or the search result was empty.
         logger.warning("WARNING: The search results are empty! Book not found"
-                       " on Open Library.")
+                       " on Google Books!")
         return {}
     relevant_metadata = {}
     # Extract publisher names

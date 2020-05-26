@@ -7,9 +7,9 @@ Planned Features (Future indicates features that won't be worked on until the
 program is already functional):
 
 1. Get book information from the web and store it in a local database, probably SQL
- * Access OpenLibrary's API
+ * Access OpenLibrary's API (Tentatively works)
  * Access GoodReads's API (Future)
- * Access Google Books' API (Future)
+ * Access Google Books' API (Work in progress)
  * Only store information available with publisher
 2. Book records features
  * Title
@@ -26,7 +26,8 @@ program is already functional):
  * Update book condition (future)
  * Destroyed/damaged beyond useability books (future)
 
-Possible pipe dreams:
+Pipe dreams:
 
 1. GUI
 2. Android app to check your local database for books you already own
+3. Barcode scanning
