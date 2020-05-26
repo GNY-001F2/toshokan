@@ -3,14 +3,13 @@
 This is my first program in many years. I have a large personal library that I
 wished to catalog to keep a record of all my books.
 
-Planned Features (Future indicates features that won't be worked on until the
-program is already functional):
+Planned Features:
 
 1. Get book information from the web and store it in a local database, probably SQL
- * Access OpenLibrary's API (Tentatively works)
- * Access GoodReads's API (Future)
- * Access Google Books' API (Work in progress)
- * Only store information available with publisher
+ * OpenLibrary (API calls and processing appear functional)
+ * GoodReads (Future)
+ * Google Books (Work in progress)
+ * Library of Congress (Most comprehensive source for LCCNs) (Future)
 2. Book records features
  * Title
  * Author
