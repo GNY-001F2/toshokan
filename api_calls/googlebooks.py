@@ -1,25 +1,30 @@
 # toshokan 
-# Copyright (C) 2019 Aayush Agarwal
+# Copyright (C) 2020 Aayush Agarwal
 #
-# This program is free software; you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation; version 2 of the License.
+# Permission granted to use, modify, and/or distribute this program under terms
+# similar to the GNU Affero General Public License, including the network
+# clause, with the following exceptions:
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU General  Public License for more
-# details.
+# In compliance with Google's Terms of Service, you are expressly forbidden
+# from monetising or commercialising this program in any state, whether a
+# a verbatim or derived copy is used. You must also comply with any other terms
+# that are stated in Google's terms of service.
+# 
+# Google's terms of service can be found at:
 #
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software Foundation, Inc., 51
-# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# <https://developers.google.com/books/terms>
+#
+# Should you wish to use the the overall work (Toshokan) in a commercial 
+# version, you must exclude this program from that version. Permission from
+# Google to monetise their services does not grant you permission to use this
+# program to use this program in a commercial capacity.
 
 import logging
 logger = logging.getLogger(__name__)
 
 def _get_googlebooks_data(idtype: str, book_id: int) -> dict:
     """
-    Looks for information on a book from the Open Library database.
+    Looks for information on a book from the Google Books database.
 
     Sends a GET request using the Google Books lookup JSON API. Returns
     a dictionary created from the result, which is a JSON object containing
@@ -43,7 +48,7 @@ def _get_googlebooks_data(idtype: str, book_id: int) -> dict:
 
 def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
     """
-    Process the result from Open Library and extract all relevant information.
+    Process the result from Google Books and extract all relevant information.
 
     arguments:
         googlebooks_data_json -- 
@@ -74,16 +79,24 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
                        "general search result to this scraper. Continuing "
                        "with first search result.")
         # NOTE: Possible avenue for future feature creep and bloatism :^)
-    googlebooks_data = googlebooks_data_json
-        # We can do this because the json data given by the Open
-        # Library API call only has one key with a second level
-        # dictionary placed inside it in the format
-        # {"search_key":{...actual_data...}}
+    except KeyError:
+        # If this fails, it means either some catastrophic failure
+        # happened or the search result was empty.
+        logger.warning("WARNING: The search results are empty! Book not found"
+                       " on Google Books!")
+    try:
+        googlebooks_data = googlebooks_data_json['items'][0]['volumeInfo']
+        # We can do this because the json data given by the Google Books
+        # API call is neatly broken into three keys: kind, totalItems and items.
         #
-        # When we call dict.popitem(), we get a tuple with
-        # ("search_key", {...actual_data...}) and we only
-        # need actual_data. Since search_key can change based on
-        # the request, it is not a reliable value to work with.
+        # The data we care about is an individual volume, specifically the
+        # first result present in the key items. The Python JSON module neatly
+        # indexes the values in items as a sorted list. The actual Google JSON
+        # reference also indexes the results as numbers starting from zero.
+        #
+        # Within the node, we only need the key volumeInfo which contains the
+        # subset of data we are interested in, apart from other bits and pieces
+        # we will strip out.
     except KeyError:
         # If this fails, it means either some catastrophic failure
         # happened or the search result was empty.
@@ -162,7 +175,7 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
 def googlebooks_results(idtype='ISBN', book_id=0) -> dict:
     """
     Recieves search query and passes it to _get_googlebooks_data() to get the data
-    from The Open Library.
+    from The Google Books.
 
     Then calls _process_googlebooks_data to convert it into the format usable by
     toshokan\'s database and returns it to the caller.
@@ -176,7 +189,7 @@ if __name__=="__main__":  #NOTE:WIP
     parser = \
         argparse.ArgumentParser(description = "Given an identifier, returns "
                                 "information about a book as contained in the "
-                                "Open Library database.")
+                                "Google Books database.")
     parser.add_argument("book_id", type = str, help = "The identifier of a "
                         "book. Default assumption is that the ID is an ISBN.",
                         metavar = "ID")
@@ -193,7 +206,7 @@ if __name__=="__main__":  #NOTE:WIP
     #                    help = "The ID is processed as an OCLC identifier.")
     # group.add_argument("--olid", action="store_const", const = 1,
     #                    default = 0, type = str, 
-    #                    help = "The ID is processed as Open Library's "
+    #                    help = "The ID is processed as Google Books's "
     #                    "internal identifier the book.")
     # NOTE: ISBN is temporary, will be replaced by code from the parser later
     idtype = "ISBN"

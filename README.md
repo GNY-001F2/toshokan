@@ -30,3 +30,8 @@ Pipe dreams:
 1. GUI
 2. Android app to check your local database for books you already own
 3. Barcode scanning
+
+Licensing:
+
+Unless mentioned otherwise in the files, all work in this program shall be
+licensed under the GNU Affero General Public License.

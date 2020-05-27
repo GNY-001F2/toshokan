@@ -1,18 +1,18 @@
 # toshokan
 # Copyright (C) 2019 Aayush Agarwal
 #
-# This program is free software; you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation; version 2 of the License.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU General  Public License for more
-# details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software Foundation, Inc., 51
-# Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
 
@@ -39,6 +39,11 @@ class book:
     '''
 
     def __init__(self,
+                 title="_unknown",
+                 authors=["Anonymous"],
+                 genres="_unknown"
+                 publishers=["_unknown/Self-published"],
+                 publish_date="_unknown",
                  identifiers={
                      'lccn': ["N/A"],
                      'isbn_13': ["N/A"],
@@ -47,9 +52,9 @@ class book:
                      # Any other IDs added to current_id_types will
                      # automatically receive N/A
                  },
-                 title="_unknown", authors=["Anonymous"], pages=0,
-                 publishers=["_unknown/Self-published"],
-                 publish_date="_unknown"):
+                 pages=0,
+                 condition="_unknown",
+                 lending_status="_unknown"):
         '''
         __init__() is used to create a book which contains the relevant 
         information about it.
