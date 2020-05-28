@@ -1,5 +1,5 @@
 # toshokan
-# Copyright (C) 2019 Aayush Agarwal
+# Copyright (C) 2020 Aayush Agarwal
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -49,7 +49,7 @@ def _process_openlib_data(openlib_data_json: dict) -> dict:
         openlib_data_json -- 
     """
     from re import findall
-    current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
+    current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc', 'issn']
     try:
         openlib_data = openlib_data_json.popitem()[1]
         # We can do this because the json data given by the Open
@@ -94,6 +94,10 @@ def _process_openlib_data(openlib_data_json: dict) -> dict:
             identifiers[id_type] = ["N/A"]
             # If openlib_data[identifiers] does not contain data for a type of
             # ID we are supporting, then we append it with ["N/A"]
+            # NOTE: There are some books in the Open Library database that
+            # actually contain multiple ISBNs for the exact same book for some
+            # reason. It is not in the scope of this program to sanity-check
+            # the upstream database.
     relevant_metadata['identifiers'] = identifiers
     try:
         check_pagination = False

@@ -53,8 +53,6 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
     arguments:
         googlebooks_data_json -- 
     """
-    from re import findall
-    current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
     # NOTE: Based on preliminary searches, Google Books does not appear to
     # catalogue LCCN values in the JSON reference for each volume. This is
     # highly unusual as their API reference explicitly mentions lccn as a valid
@@ -104,72 +102,66 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
                        " on Google Books!")
         return {}
     relevant_metadata = {}
-    # Extract publisher names
-    try:
-        googlebooks_publishers = googlebooks_data['publishers']
-        publishers = [publisher['name'] for publisher in googlebooks_publishers]
-        relevant_metadata['publishers'] = sorted(publishers)
-    except KeyError:
-        logger.warning("WARNING: The book has no known publishers.")
-        relevant_metadata['publishers'] = ["UNKNOWN"]
-    # Extract the date of publishing
-    try:
-        relevant_metadata['publish_date'] = googlebooks_data['publish_date']
-    except KeyError:
-        logger.warning("WARNING: The publishing date is unknown.")
-        relevant_metadata['publish_date'] = ["UNKNOWN"]
-    googlebooks_identifiers = googlebooks_data['identifiers']  # dictionary
-    identifiers = {}
-    for id_type in current_id_types:
-        try:
-            identifiers[id_type] = googlebooks_identifiers[id_type]
-            # Stored as a list, in case a single book has more than one
-            # value for one ID type
-        except KeyError:
-            logger.warning(f"WARNING: There is no {id_type} for this book.")
-            identifiers[id_type] = ["N/A"]
-            # If googlebooks_data[identifiers] does not contain data for a type of
-            # ID we are supporting, then we append it with ["N/A"]
-    relevant_metadata['identifiers'] = identifiers
-    try:
-        check_pagination = False
-        relevant_metadata['pages'] = googlebooks_data['number_of_pages']
-    except KeyError:
-        logger.warning("WARNING: The key \'number_of_pages\' not found in the "
-                       "request.\nTrying key \'pagination\'")
-        check_pagination = True
-    if(check_pagination):
-        try:
-            page_data = googlebooks_data['pagination']
-            # only doing this because the data is stored inconsistently and I
-            # don't want the stupid situation where pagination stores multiple
-            # sets of digits and I grab the wrong set
-            relevant_metadata['pages'] = max(list(map(int,
-                                                      findall(r'\d+',
-                                                              page_data))))
-            # quick and dirty; should work for 99.9% of books in existence
-            # credit:
-            # https://www.geeksforgeeks.org/python-extract-numbers-from-string/
-        except:
-            logger.warning("WARNING: The key \'pagination\' was also not found!"
-                           "\nPage count unknown!")
-            relevant_metadata['pages'] = -1
     try:
         relevant_metadata['title'] = googlebooks_data['title']
     except KeyError:
         logger.warning("WARNING: This book is untitled.")
         relevant_metadata['title'] = "Untitled"
     try:
-        googlebooks_authors = googlebooks_data['authors']
-        relevant_metadata['authors'] = [author['name'] for author in
-                                        googlebooks_authors]
+        # Google Books stores author names in a really neat way.
+        relevant_metadata['authors'] = googlebooks_data['authors']
     except KeyError:
         logger.warning("WARNING: This book has no known authors!")
         relevant_metadata['authors'] = ["unknown"]
-    #try:
-    #    googlebooks_authors = googlebooks_data['authors']
-    #    relevant_metadata['authors'] = [author['name'] for author in
-    #                                    googlebooks_authors]
+    # Extract publisher names
+    try:
+        # Unlike the Open Library API, Google assumes that there is only
+        # one publisher. However, to keep the data struture consistent we will
+        # store it as a list.
+        relevant_metadata['publishers'] = [googlebooks_data['publisher']]
+    except KeyError:
+        logger.warning("WARNING: The book has no known publishers.")
+        relevant_metadata['publishers'] = ["UNKNOWN"]
+    # Extract the date of publishing
+    try:
+        relevant_metadata['publish_date'] = googlebooks_data['publishedDate']
+    except KeyError:
+        logger.warning("WARNING: The publishing date is unknown.")
+        relevant_metadata['publish_date'] = ["UNKNOWN"]
+    try:
+        identifiers = {'lccn':["N/A"],
+                       'isbn_13':["N/A"], # WE ALREADY KNOW THAT LCCN and OCLC
+                       'isbn_10':["N/A"], # ARE NOT PRESENT IN THE JSON DATA
+                       'oclc':["N/A"],
+                       'issn':["N/A"]}
+        # A static version to check if the results were actually empty
+        noidentifiers = identifiers.copy()
+        logger.info("INFO: A Google JSON result does not contain LCCN or OCLC "
+                    "data. Consequently those identifiers will remain "
+                    "unpopulated")
+        googlebooks_identifiers = googlebooks_data['industryIdentifiers']
+        # NOTE: Google's reference also mentions an OTHER ID type, but at this
+        # point, I don't want to play "Guess Who?" with that data. Probably
+        # better to merge these with queries from other databases.
+        for gidentifier in googlebooks_identifiers:
+            if gidentifier['type'] == 'ISBN_13':
+                identifiers['isbn_13'] = gidentifier['identifier']
+            elif gidentifier['type'] == 'ISBN_10':
+                identifiers['isbn_10'] = gidentifier['identifier']
+            elif gidentifier['type'] == 'ISSN':
+                identifiers['issn'] = gidentifier['identifier']
+        # sanity check here
+        if identifiers == noidentifiers:
+            logger.warning("WARNING: This book has no industry-standard "
+                           "identifiers!")
+    except KeyError:
+        logger.warning("WARNING: This book has no industry-standard"
+                       " identifiers!")
+    try:
+        relevant_metadata['pages'] = googlebooks_data['pageCount']
+    except KeyError:
+        logger.warning("WARNING: The number of pages is unknown!")
+        relevant_metadata['pages'] = -1
     return relevant_metadata
 
 def googlebooks_results(idtype='ISBN', book_id=0) -> dict:
@@ -180,9 +172,9 @@ def googlebooks_results(idtype='ISBN', book_id=0) -> dict:
     Then calls _process_googlebooks_data to convert it into the format usable by
     toshokan\'s database and returns it to the caller.
     """
-    olib_data = _get_googlebooks_data(idtype, book_id)
-    olib_data_processed = _process_googlebooks_data()
-    return olib_data_processed
+    gbooks_data = _get_googlebooks_data(idtype, book_id)
+    gbooks_data_processed = _process_googlebooks_data()
+    return gbooks_data_processed
 
 if __name__=="__main__":  #NOTE:WIP
     import argparse

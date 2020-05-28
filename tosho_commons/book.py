@@ -1,5 +1,5 @@
 # toshokan
-# Copyright (C) 2019 Aayush Agarwal
+# Copyright (C) 2020 Aayush Agarwal
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -41,20 +41,19 @@ class book:
     def __init__(self,
                  title="_unknown",
                  authors=["Anonymous"],
-                 genres="_unknown"
+                 #genres="_unknown"
                  publishers=["_unknown/Self-published"],
                  publish_date="_unknown",
                  identifiers={
                      'lccn': ["N/A"],
                      'isbn_13': ["N/A"],
                      'isbn_10': ["N/A"],
-                     'oclc': ["N/A"]
+                     'oclc': ["N/A"],
+                     'issn': ["N/A"] # Apparently magazines use this.
                      # Any other IDs added to current_id_types will
                      # automatically receive N/A
                  },
-                 pages=0,
-                 condition="_unknown",
-                 lending_status="_unknown"):
+                 pages=0):
         '''
         __init__() is used to create a book which contains the relevant 
         information about it.
