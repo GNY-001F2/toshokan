@@ -69,8 +69,6 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
     try:
         if(googlebooks_data_json['totalItems'] > 1):
             raise ValueError
-        #elif(googlebooks_data_json['totalItems'] < 1):
-            #raise KeyError
     except ValueError:
         logger.warning("WARNING: More than one result found for requested "
                        "search. This means someone has tried to pass a more "
@@ -154,9 +152,13 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
         if identifiers == noidentifiers:
             logger.warning("WARNING: This book has no industry-standard "
                            "identifiers!")
-    except KeyError:
+    except KeyError: # We do this because we're watching for a case where the
+                     # industryIdentifiers tag itself is not declared.
+                     # So even if it seems redundant, we're bound to do it
+                     # twice.
         logger.warning("WARNING: This book has no industry-standard"
                        " identifiers!")
+    relevant_metadata['identifiers'] = identifiers
     try:
         relevant_metadata['pages'] = googlebooks_data['pageCount']
     except KeyError:
@@ -201,11 +203,10 @@ if __name__=="__main__":  #NOTE:WIP
     #                    help = "The ID is processed as Google Books's "
     #                    "internal identifier the book.")
     # NOTE: ISBN is temporary, will be replaced by code from the parser later
-    idtype = "ISBN"
+    idtype = "isbn"
     # NOTE: 'parser' will be changed to group when I enable the flags for the
     #       ArgumentParser
     args = parser.parse_args()
-    olib_results = _get_googlebooks_data(idtype, args.book_id)
-    print(olib_results)
-    relevant_metadata = _process_googlebooks_data(olib_results)
+    gbooks_results = _get_googlebooks_data(idtype, args.book_id)
+    relevant_metadata = _process_googlebooks_data(gbooks_results)
     print(relevant_metadata)

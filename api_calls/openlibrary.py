@@ -68,6 +68,31 @@ def _process_openlib_data(openlib_data_json: dict) -> dict:
                        " on Open Library.")
         return {}
     relevant_metadata = {}
+    try:
+        relevant_metadata['title'] = openlib_data['title']
+    except KeyError:
+        logger.warning("WARNING: This book is untitled.")
+        relevant_metadata['title'] = "Untitled"
+    try:
+        # Because the API is really inconsistent, we may need this if the key
+        # 'authors' does not exist.
+        check_by_statement = False
+        openlib_authors = openlib_data['authors']
+        relevant_metadata['authors'] = [author['name'] for author in
+                                        openlib_authors]
+    except KeyError:
+        logger.warning("WARNING: Key 'authors' not found! Checking the data "
+                       "for a 'by_statement' key.")
+        check_by_statement = True
+    if(check_by_statement):
+        # The JSON data is extremely inconsistent and poorly documented, so data
+        # checks will be error-prone. It is recommended to use other sources
+        # as well and merge with the Open Library result to fill in the blanks
+        try:
+            relevant_metadata['authors'] = [openlib_data['by_statement']]
+        except KeyError:
+            logger.warning("WARNING: This book has no known authors!")
+            relevant_metadata['authors'] = ["UNKNOWN"]
     # Extract publisher names
     try:
         openlib_publishers = openlib_data['publishers']
@@ -122,22 +147,6 @@ def _process_openlib_data(openlib_data_json: dict) -> dict:
             logger.warning("WARNING: The key \'pagination\' was also not found!"
                            "\nPage count unknown!")
             relevant_metadata['pages'] = -1
-    try:
-        relevant_metadata['title'] = openlib_data['title']
-    except KeyError:
-        logger.warning("WARNING: This book is untitled.")
-        relevant_metadata['title'] = "Untitled"
-    try:
-        openlib_authors = openlib_data['authors']
-        relevant_metadata['authors'] = [author['name'] for author in
-                                        openlib_authors]
-    except KeyError:
-        logger.warning("WARNING: This book has no known authors!")
-        relevant_metadata['authors'] = ["unknown"]
-    #try:
-    #    openlib_authors = openlib_data['authors']
-    #    relevant_metadata['authors'] = [author['name'] for author in
-    #                                    openlib_authors]
     return relevant_metadata
 
 def openlib_results(idtype='ISBN', book_id=0) -> dict:
@@ -182,6 +191,5 @@ if __name__=="__main__":  #NOTE:WIP
     #       ArgumentParser
     args = parser.parse_args()
     olib_results = _get_openlib_data(idtype, args.book_id)
-    print(olib_results)
     relevant_metadata = _process_openlib_data(olib_results)
     print(relevant_metadata)
