@@ -1,9 +1,9 @@
 # toshokan 
 # Copyright (C) 2020 Aayush Agarwal
 #
-# Permission granted to use, modify, and/or distribute this program under terms
-# similar to the GNU Affero General Public License, including the network
-# clause, with the following exceptions:
+# Permission granted to use, modify, and/or distribute this program under the
+# terms of the GNU Affero General Public License, including the network clause
+# with the following exceptions:
 #
 # In compliance with Google's Terms of Service, you are expressly forbidden
 # from monetising or commercialising this program in any state, whether a
@@ -68,6 +68,8 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
     # this. Further investigation is needed.
     try:
         if(googlebooks_data_json['totalItems'] > 1):
+            print(googlebooks_data_json)
+            print(googlebooks_data_json['totalItems'])
             raise ValueError
     except ValueError:
         logger.warning("WARNING: More than one result found for requested "
@@ -143,11 +145,11 @@ def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
         # better to merge these with queries from other databases.
         for gidentifier in googlebooks_identifiers:
             if gidentifier['type'] == 'ISBN_13':
-                identifiers['isbn_13'] = gidentifier['identifier']
+                identifiers['isbn_13'] = [gidentifier['identifier']]
             elif gidentifier['type'] == 'ISBN_10':
-                identifiers['isbn_10'] = gidentifier['identifier']
+                identifiers['isbn_10'] = [gidentifier['identifier']]
             elif gidentifier['type'] == 'ISSN':
-                identifiers['issn'] = gidentifier['identifier']
+                identifiers['issn'] = [gidentifier['identifier']]
         # sanity check here
         if identifiers == noidentifiers:
             logger.warning("WARNING: This book has no industry-standard "

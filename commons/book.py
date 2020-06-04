@@ -29,7 +29,6 @@ class book:
             * OCLC: list, but I don't know anything about it currently.
                 * may or may not be unique, but stored as a list for ease of
                 programming
-        * Unique ID: int, this is the ID that will identify the book in your
           library
         * Title: str, title of the book
         * Author(s): list, names of the authors who wrote this book
@@ -87,4 +86,8 @@ class book:
         '''
         Takes the relevant_metadata and creates a book out of it.
         '''
+        pass
+
+class volume:
+    def __init__(self, volumeID: int, book_details: book):
         pass

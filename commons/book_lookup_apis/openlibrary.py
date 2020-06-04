@@ -36,8 +36,12 @@ def _get_openlib_data(idtype: str, book_id: int) -> dict:
     """
     from requests import get
     from json import loads
+    openlib_request_url = 'https://openlibrary.org/api/books'
     openlib_request_result = get('https://openlibrary.org/api/books?bibkeys'
                                  f'={idtype}:{book_id}&jscmd=data&format=json')
+    # NOTE: I looked into using the params argument, but apparently params get
+    # converted into the % encoding format, which the Open Library API does not
+    # know how to work with.
     openlib_data_json = loads(openlib_request_result.content)
     return openlib_data_json
 
