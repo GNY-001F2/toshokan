@@ -14,8 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc']
-
 class book:
     '''
     A book contains some information about itself. This book class does the
@@ -38,27 +36,25 @@ class book:
     '''
 
     def __init__(self,
-                 title="_unknown",
-                 authors=["Anonymous"],
-                 #genres="_unknown"
-                 publishers=["_unknown/Self-published"],
-                 publish_date="_unknown",
-                 identifiers={
+                 book_id: int = -1,
+                 title: str = "_unknown",
+                 authors: list = ["Anonymous"],
+                 publishers: list = ["_unknown/Self-published"],
+                 publish_date: list = "_unknown",
+                 identifiers: dict = {
                      'lccn': ["N/A"],
                      'isbn_13': ["N/A"],
                      'isbn_10': ["N/A"],
                      'oclc': ["N/A"],
-                     'issn': ["N/A"] # Apparently magazines use this.
-                     # Any other IDs added to current_id_types will
-                     # automatically receive N/A
+                     'issn': ["N/A"] # Magazines use this.
                  },
-                 pages=0):
+                 pages: int = 0):
         '''
         __init__() is used to create a book which contains the relevant 
         information about it.
         '''
         # Let's add each id_type to the list of identifiers
-        for id_type in current_id_types:
+        for id_type in ['lccn', 'isbn_13', 'isbn_10', 'oclc', 'issn']:
             try:
                 self.identifiers[id_type] = identifiers[id_type]
             except KeyError:
@@ -79,15 +75,11 @@ class book:
         This __init__() will use api calls to acquire the correct information
         and call __init__(self,ARGS) responsible for value assignment
         '''
-        # NOTE: To be implemented at a much later date
-        __init__(self)  # for now just call defaults to prevent funky behaviour
-        pass
+        import lookup_data
+        relevant_metadata = 
+        __init__(relevant_metadata)
     def __init__(self, relevant_metadata: dict):
         '''
         Takes the relevant_metadata and creates a book out of it.
         '''
-        pass
-
-class volume:
-    def __init__(self, volumeID: int, book_details: book):
-        pass
+        

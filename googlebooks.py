@@ -22,7 +22,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-def _get_googlebooks_data(idtype: str, book_id: int) -> dict:
+def get_googlebooks_data(idtype: str, book_id: int) -> dict:
     """
     Looks for information on a book from the Google Books database.
 
@@ -46,7 +46,7 @@ def _get_googlebooks_data(idtype: str, book_id: int) -> dict:
     googlebooks_data_json = loads(googlebooks_request_result.content)
     return googlebooks_data_json
 
-def _process_googlebooks_data(googlebooks_data_json: dict) -> dict:
+def process_googlebooks_data(googlebooks_data_json: dict) -> dict:
     """
     Process the result from Google Books and extract all relevant information.
 
@@ -176,8 +176,8 @@ def googlebooks_results(idtype='ISBN', book_id=0) -> dict:
     Then calls _process_googlebooks_data to convert it into the format usable by
     toshokan\'s database and returns it to the caller.
     """
-    gbooks_data = _get_googlebooks_data(idtype, book_id)
-    gbooks_data_processed = _process_googlebooks_data()
+    gbooks_data = get_googlebooks_data(idtype, book_id)
+    gbooks_data_processed = process_googlebooks_data()
     return gbooks_data_processed
 
 if __name__=="__main__":  #NOTE:WIP
@@ -209,6 +209,6 @@ if __name__=="__main__":  #NOTE:WIP
     # NOTE: 'parser' will be changed to group when I enable the flags for the
     #       ArgumentParser
     args = parser.parse_args()
-    gbooks_results = _get_googlebooks_data(idtype, args.book_id)
-    relevant_metadata = _process_googlebooks_data(gbooks_results)
+    gbooks_results = get_googlebooks_data(idtype, args.book_id)
+    relevant_metadata = process_googlebooks_data(gbooks_results)
     print(relevant_metadata)

@@ -17,7 +17,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-def _get_openlib_data(idtype: str, book_id: int) -> dict:
+def get_openlib_data(idtype: str, book_id: int) -> dict:
     """
     Looks for information on a book from the Open Library database.
 
@@ -45,7 +45,7 @@ def _get_openlib_data(idtype: str, book_id: int) -> dict:
     openlib_data_json = loads(openlib_request_result.content)
     return openlib_data_json
 
-def _process_openlib_data(openlib_data_json: dict) -> dict:
+def process_openlib_data(openlib_data_json: dict) -> dict:
     """
     Process the result from Open Library and extract all relevant information.
 
@@ -153,16 +153,16 @@ def _process_openlib_data(openlib_data_json: dict) -> dict:
             relevant_metadata['pages'] = -1
     return relevant_metadata
 
-def openlib_results(idtype='ISBN', book_id=0) -> dict:
+def openlibrary_results(idtype='ISBN', book_id=0) -> dict:
     """
     Recieves search query and passes it to _get_openlib_data() to get the data
     from The Open Library.
 
-    Then calls _process_openlib_data to convert it into the format usable by
+    Then calls process_openlib_data to convert it into the format usable by
     toshokan\'s database and returns it to the caller.
     """
-    olib_data = _get_openlib_data(idtype, book_id)
-    olib_data_processed = _process_openlib_data()
+    olib_data = get_openlib_data(idtype, book_id)
+    olib_data_processed = process_openlib_data()
     return olib_data_processed
 
 if __name__=="__main__":  #NOTE:WIP
@@ -194,6 +194,6 @@ if __name__=="__main__":  #NOTE:WIP
     # NOTE: 'parser' will be changed to group when I enable the flags for the
     #       ArgumentParser
     args = parser.parse_args()
-    olib_results = _get_openlib_data(idtype, args.book_id)
-    relevant_metadata = _process_openlib_data(olib_results)
+    olib_results = get_openlib_data(idtype, args.book_id)
+    relevant_metadata = process_openlib_data(olib_results)
     print(relevant_metadata)
