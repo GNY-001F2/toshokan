@@ -17,6 +17,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+
 def get_openlib_data(idtype: str, book_id: int) -> dict:
     """
     Looks for information on a book from the Open Library database.
@@ -45,12 +46,13 @@ def get_openlib_data(idtype: str, book_id: int) -> dict:
     openlib_data_json = loads(openlib_request_result.content)
     return openlib_data_json
 
+
 def process_openlib_data(openlib_data_json: dict) -> dict:
     """
     Process the result from Open Library and extract all relevant information.
 
     arguments:
-        openlib_data_json -- 
+        openlib_data_json --
     """
     from re import findall
     current_id_types = ['lccn', 'isbn_13', 'isbn_10', 'oclc', 'issn']
@@ -89,9 +91,10 @@ def process_openlib_data(openlib_data_json: dict) -> dict:
                        "for a 'by_statement' key.")
         check_by_statement = True
     if(check_by_statement):
-        # The JSON data is extremely inconsistent and poorly documented, so data
-        # checks will be error-prone. It is recommended to use other sources
-        # as well and merge with the Open Library result to fill in the blanks
+        # The JSON data is extremely inconsistent and poorly documented, so
+        # data checks will be error-prone. It is recommended to use other
+        # sources as well and merge with the Open Library result to fill in the
+        # blanks
         try:
             relevant_metadata['authors'] = [openlib_data['by_statement']]
         except KeyError:
@@ -115,9 +118,8 @@ def process_openlib_data(openlib_data_json: dict) -> dict:
     identifiers = {}
     for id_type in current_id_types:
         try:
-            identifiers[id_type] = openlib_identifiers[id_type]
-            # Stored as a list, in case a single book has more than one
-            # value for one ID type
+            # The data is presented as a list, but we will store it as a string
+            identifiers[id_type] = openlib_identifiers[id_type][0]
         except KeyError:
             logger.warning(f"WARNING: There is no {id_type} for this book.")
             identifiers[id_type] = ["N/A"]
@@ -147,11 +149,12 @@ def process_openlib_data(openlib_data_json: dict) -> dict:
             # quick and dirty; should work for 99.9% of books in existence
             # credit:
             # https://www.geeksforgeeks.org/python-extract-numbers-from-string/
-        except:
-            logger.warning("WARNING: The key \'pagination\' was also not found!"
-                           "\nPage count unknown!")
+        except KeyError:
+            logger.warning("WARNING: The key \'pagination\' was also not"
+                           "found!\nPage count unknown!")
             relevant_metadata['pages'] = -1
     return relevant_metadata
+
 
 def openlibrary_results(idtype='ISBN', book_id=0) -> dict:
     """
@@ -162,23 +165,25 @@ def openlibrary_results(idtype='ISBN', book_id=0) -> dict:
     toshokan\'s database and returns it to the caller.
     """
     olib_data = get_openlib_data(idtype, book_id)
-    olib_data_processed = process_openlib_data()
+    olib_data_processed = process_openlib_data(olib_data)
     return olib_data_processed
 
-if __name__=="__main__":  #NOTE:WIP
+
+if __name__ == "__main__":  # NOTE:WIP
     import argparse
     parser = \
-        argparse.ArgumentParser(description = "Given an identifier, returns "
+        argparse.ArgumentParser(description="Given an identifier, returns "
                                 "information about a book as contained in the "
                                 "Open Library database.")
-    parser.add_argument("book_id", type = str, help = "The identifier of a "
+    parser.add_argument("book_id", type=str, help="The identifier of a "
                         "book. Default assumption is that the ID is an ISBN.",
-                        metavar = "ID")
+                        metavar="ID")
     # TODO. Let's first get ISBN lookups working.
-    #group = parser.add_mutually_exclusive_group()
+    # group = parser.add_mutually_exclusive_group()
     parser.add_argument("-i", "--isbn", action="store_const", const=1,
-                       default=1, #type=str,
-                       help="The ID is processed as an ISBN. Enabled default.")
+                        default=1,  # type=str,
+                        help="The ID is processed as an ISBN. Enabled"
+                             "default.")
     # group.add_argument("-l", "--lccn", action="store_const", const = 1,
     #                    default = 0, type = str,
     #                    help = "The ID is processed as an LCCN.")
@@ -186,7 +191,7 @@ if __name__=="__main__":  #NOTE:WIP
     #                    default = 0, type = str,
     #                    help = "The ID is processed as an OCLC identifier.")
     # group.add_argument("--olid", action="store_const", const = 1,
-    #                    default = 0, type = str, 
+    #                    default = 0, type = str,
     #                    help = "The ID is processed as Open Library's "
     #                    "internal identifier the book.")
     # NOTE: ISBN is temporary, will be replaced by code from the parser later
@@ -196,4 +201,7 @@ if __name__=="__main__":  #NOTE:WIP
     args = parser.parse_args()
     olib_results = get_openlib_data(idtype, args.book_id)
     relevant_metadata = process_openlib_data(olib_results)
+    print(relevant_metadata)
+    relevant_metadata2 = openlibrary_results(idtype, args.book_id)
+    assert relevant_metadata == relevant_metadata2
     print(relevant_metadata)

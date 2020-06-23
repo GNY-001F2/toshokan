@@ -42,18 +42,19 @@ class book:
                  publishers: list = ["_unknown/Self-published"],
                  publish_date: list = "_unknown",
                  identifiers: dict = {
-                     'lccn': ["N/A"],
-                     'isbn_13': ["N/A"],
-                     'isbn_10': ["N/A"],
-                     'oclc': ["N/A"],
-                     'issn': ["N/A"] # Magazines use this.
+                     'lccn': "N/A",
+                     'isbn_13': "N/A",
+                     'isbn_10': "N/A",
+                     'oclc': "N/A",
+                     'issn': "N/A"  # Magazines use this.
                  },
                  pages: int = 0):
         '''
-        __init__() is used to create a book which contains the relevant 
+        __init__() is used to create a book which contains the relevant
         information about it.
         '''
         # Let's add each id_type to the list of identifiers
+        self.identifiers = {}
         for id_type in ['lccn', 'isbn_13', 'isbn_10', 'oclc', 'issn']:
             try:
                 self.identifiers[id_type] = identifiers[id_type]
@@ -62,24 +63,20 @@ class book:
             # Any other error is beyond the scope of this at the moment
         # NOTE:this will be updated by whatever process adds the book to the
         # collection (TODO)
-        self.unique_id = -1
+        self.__book_id = book_id
         self.title = title
+        self.authors = []
         for author in authors:
             self.authors.append(author)
         self.pages = pages
         self.publishers = publishers
         self.publish_date = publish_date
 
-    def __init__(self, id_type: str, id_str: str):
-        '''
-        This __init__() will use api calls to acquire the correct information
-        and call __init__(self,ARGS) responsible for value assignment
-        '''
-        import lookup_data
-        relevant_metadata = 
-        __init__(relevant_metadata)
-    def __init__(self, relevant_metadata: dict):
-        '''
-        Takes the relevant_metadata and creates a book out of it.
-        '''
-        
+    @property  # make this read-only; the database will assign an ID
+    def book_id(self):
+        return self.__book_id
+
+
+if __name__ == '__main__':
+    a = book()
+    print(a.book_id)
