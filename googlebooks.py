@@ -121,22 +121,24 @@ def process_googlebooks_data(googlebooks_data_json: dict) -> dict:
         # Unlike the Open Library API, Google assumes that there is only
         # one publisher. However, to keep the data struture consistent we will
         # store it as a list.
-        relevant_metadata['publishers'] = [googlebooks_data['publisher']]
+        relevant_metadata['publisher'] = googlebooks_data['publisher']
     except KeyError:
         logger.warning("WARNING: The book has no known publishers.")
-        relevant_metadata['publishers'] = ["UNKNOWN"]
+        relevant_metadata['publisher'] = "UNKNOWN"
     # Extract the date of publishing
     try:
         relevant_metadata['publish_date'] = googlebooks_data['publishedDate']
     except KeyError:
         logger.warning("WARNING: The publishing date is unknown.")
-        relevant_metadata['publish_date'] = ["UNKNOWN"]
+        relevant_metadata['publish_date'] = "UNKNOWN"
     try:
-        identifiers = {'lccn': "N/A",
-                       'isbn_13': "N/A",  # WE ALREADY KNOW THAT LCCN and OCLC
-                       'isbn_10': "N/A",  # ARE NOT PRESENT IN THE JSON DATA
-                       'oclc': "N/A",
-                       'issn': "N/A"}
+        identifiers = {
+            'lccn': "N/A",
+            'isbn_13': "N/A",  # WE ALREADY KNOW THAT LCCN and OCLC
+            'isbn_10': "N/A",  # ARE NOT PRESENT IN THE JSON DATA
+            'oclc': "N/A",
+            'issn': "N/A"
+        }
         # A static version to check if the results were actually empty
         noidentifiers = identifiers.copy()
         logger.info("INFO: A Google JSON result does not contain LCCN or OCLC "
@@ -218,6 +220,7 @@ if __name__ == "__main__":  # NOTE:WIP
     args = parser.parse_args()
     gbooks_results = get_googlebooks_data(idtype, args.book_id)
     relevant_metadata = process_googlebooks_data(gbooks_results)
+    print(relevant_metadata)
     relevant_metadata2 = googlebooks_results(idtype, args.book_id)
     assert relevant_metadata == relevant_metadata2
     print(relevant_metadata2)

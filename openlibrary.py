@@ -104,16 +104,16 @@ def process_openlib_data(openlib_data_json: dict) -> dict:
     try:
         openlib_publishers = openlib_data['publishers']
         publishers = [publisher['name'] for publisher in openlib_publishers]
-        relevant_metadata['publishers'] = sorted(publishers)
+        relevant_metadata['publisher'] = publishers[0]
     except KeyError:
         logger.warning("WARNING: The book has no known publishers.")
-        relevant_metadata['publishers'] = ["UNKNOWN"]
+        relevant_metadata['publisher'] = "UNKNOWN"
     # Extract the date of publishing
     try:
         relevant_metadata['publish_date'] = openlib_data['publish_date']
     except KeyError:
         logger.warning("WARNING: The publishing date is unknown.")
-        relevant_metadata['publish_date'] = ["UNKNOWN"]
+        relevant_metadata['publish_date'] = "UNKNOWN"
     openlib_identifiers = openlib_data['identifiers']  # dictionary
     identifiers = {}
     for id_type in current_id_types:
@@ -122,7 +122,7 @@ def process_openlib_data(openlib_data_json: dict) -> dict:
             identifiers[id_type] = openlib_identifiers[id_type][0]
         except KeyError:
             logger.warning(f"WARNING: There is no {id_type} for this book.")
-            identifiers[id_type] = ["N/A"]
+            identifiers[id_type] = "N/A"
             # If openlib_data[identifiers] does not contain data for a type of
             # ID we are supporting, then we append it with ["N/A"]
             # NOTE: There are some books in the Open Library database that

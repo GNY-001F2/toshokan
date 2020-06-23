@@ -44,11 +44,12 @@ def lookup_data(idtype: str="isbn", bookid: int) -> dict:
     return final_result
 
 
-def merge(gbook_metadata, olib_metadata):  # TODO: prh_metadata):
+def merge(gbook_metadata: dict, olib_metadata: dict) -> dict:
+    # TODO: prh_metadata:
     '''
     Compares the metadata given by 
     '''
-    attrs_to_be_examined = []
+    attrs_to_be_examined = []  # Contains all the tags to be matched
     for attr in olib_metadata:
         if olib_metadata[attr] == gbook_metadata[attr]:
             final_result[attr] = olib_metadata[attr]
@@ -88,7 +89,12 @@ def merge(gbook_metadata, olib_metadata):  # TODO: prh_metadata):
     print("The following identifier types have also not matched:")
     for id_type in mismatched_id_types:
         print(f'{id_type}')
-    print("Please select which data is to be kept.")
+    print("Please select which data is to be kept.\n")
     for attr in attrs_to_be_examined:
-        input()
+        print(f'Current item to be merged is {attr}')
+        compared_values = {'1': olib_metadata[attr], '2': gbook_metadata[attr]}
+        for index, value in compared_values.content:
+            print(index, value, sep='. ')
+        final_result[attr] = compared_values[input('Please choose which '
+                                                   f'{attr} is to be kept')]
     return final_result

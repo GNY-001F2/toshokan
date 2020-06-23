@@ -36,11 +36,11 @@ class book:
     '''
 
     def __init__(self,
-                 book_id: int = -1,
-                 title: str = "_unknown",
-                 authors: list = ["Anonymous"],
-                 publishers: list = ["_unknown/Self-published"],
-                 publish_date: list = "_unknown",
+                 book_id: int = 0,  # 0 represents object not extracted from db
+                 title: str = "UNKNOWN",
+                 authors: list = ["UNKNOWN"],
+                 publisher: str = "UNKNOWN",
+                 publish_date: str = "UNKNOWN",
                  identifiers: dict = {
                      'lccn': "N/A",
                      'isbn_13': "N/A",
@@ -48,7 +48,7 @@ class book:
                      'oclc': "N/A",
                      'issn': "N/A"  # Magazines use this.
                  },
-                 pages: int = 0):
+                 pages: int = 0):  # 0 represents unknown
         '''
         __init__() is used to create a book which contains the relevant
         information about it.
