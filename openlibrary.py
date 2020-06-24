@@ -156,7 +156,7 @@ def process_openlib_data(openlib_data_json: dict) -> dict:
     return relevant_metadata
 
 
-def openlibrary_results(idtype='ISBN', book_id=0) -> dict:
+def openlibrary_results(idtype='ISBN', book_id=-1) -> dict:
     """
     Recieves search query and passes it to _get_openlib_data() to get the data
     from The Open Library.
@@ -164,6 +164,8 @@ def openlibrary_results(idtype='ISBN', book_id=0) -> dict:
     Then calls process_openlib_data to convert it into the format usable by
     toshokan\'s database and returns it to the caller.
     """
+    # TODO: Check validity of input data. ISBNs should be 10 or 13 digits long
+    # Similar rules likely exist for other valid search options
     olib_data = get_openlib_data(idtype, book_id)
     olib_data_processed = process_openlib_data(olib_data)
     return olib_data_processed

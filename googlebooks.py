@@ -109,13 +109,13 @@ def process_googlebooks_data(googlebooks_data_json: dict) -> dict:
         relevant_metadata['title'] = googlebooks_data['title']
     except KeyError:
         logger.warning("WARNING: This book is untitled.")
-        relevant_metadata['title'] = "Untitled"
+        relevant_metadata['title'] = "UNKNOWN"
     try:
         # Google Books stores author names in a really neat way.
         relevant_metadata['authors'] = googlebooks_data['authors']
     except KeyError:
         logger.warning("WARNING: This book has no known authors!")
-        relevant_metadata['authors'] = ["unknown"]
+        relevant_metadata['authors'] = ["UNKNOWN"]
     # Extract publisher names
     try:
         # Unlike the Open Library API, Google assumes that there is only
@@ -175,7 +175,8 @@ def process_googlebooks_data(googlebooks_data_json: dict) -> dict:
     return relevant_metadata
 
 
-def googlebooks_results(idtype='ISBN', book_id=0) -> dict:
+def googlebooks_results(idtype='isbn', book_id=0) -> dict:
+    # NOTE: Google Books uses lowercase isbns only!!
     """
     Recieves search query and passes it to _get_googlebooks_data() to get the
     data from The Google Books.
@@ -183,6 +184,7 @@ def googlebooks_results(idtype='ISBN', book_id=0) -> dict:
     Then calls _process_googlebooks_data to convert it into the format usable
     by toshokan\'s database and returns it to the caller.
     """
+    # No need to check validity as google books does it for us.
     gbooks_data = get_googlebooks_data(idtype, book_id)
     gbooks_data_processed = process_googlebooks_data(gbooks_data)
     return gbooks_data_processed
