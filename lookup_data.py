@@ -98,29 +98,58 @@ def _merge_authors(olib_authors: list, gbook_authors: list) -> list:
 
 
 def _check_duplicate_authors(combined_authors: list) -> list:
+    #print(combined_authors)
     combined_authors_len = len(combined_authors)
+    #print(combined_authors_len)
     deduped_authors_list = []
-    c_a_l_range = range(combined_authors_len)
-    for i in c_a_l_range:
-        possible_duplicates = []
-        for j in c_a_l_range:
-            if combined_authors[i].lower() == \
-                combined_authors[j].lower():
-                possible_duplicates += [combined_authors[j]]
-                combined_authors.pop(j)
+    #c_a_l_range_j = range(combined_authors_len-1, -1, -1)
+    while combined_authors_len > 0:
+        # First consume the item at the first index. We want to check all
+        # other values against this item and flag duplicates.
+        possible_duplicates = [combined_authors[0]]
+        #print(possible_duplicates)
+        combined_authors.remove(combined_authors[0])
+        #print(combined_authors)
+        combined_authors_len = len(combined_authors)
+        #print(combined_authors_len)
+        # Next, we make sure that the list is not empty.
+        if combined_authors_len == 0:
+            # At this point it should not be possible for possible_duplicates
+            # to have more than one value, so we can just add it and break out
+            # of this loop
+            deduped_authors_list += possible_duplicates
+            break
+        # If the list is not empty, then we compare the value in
+        # possible_duplicates with the remaining values in the list using a
+        # loop
+        i = 0
+        while i < combined_authors_len:
+            # If the value matches, then we add it to possible_duplicates and
+            # remove it from the list
+            if possible_duplicates[0].lower() == combined_authors[i].lower():
+                #if combined_authors[i] not in possible_duplicates:
+                possible_duplicates += [combined_authors[i]]
+                #print(possible_duplicates)
+                combined_authors.remove(combined_authors[i])
+                combined_authors_len = len(combined_authors)
+            else:
+                i += 1
         p_d_len = len(possible_duplicates)
         if p_d_len == 1:
             deduped_authors_list += possible_duplicates
         elif p_d_len > 1:
             p_d_l_range = range(p_d_len)
-            print(f"Duplicates found for: {combined_authors[i]}")
-            for i in p_d_l_range:
+            print(f"Duplicates found for: {possible_duplicates[0]}")
+            j=0
+            while j < p_d_len:
                 # NOTE: More intuitive for a user to choose from 1 to x
-                print(f'{i+1}. {possible_duplicates[i]}', end=" ")
+                print(f'{(j+1)}. {possible_duplicates[j]}', end=" ")
+                j += 1
             correct_name = \
-                int(input("\nPlease choose the most correct version!"))-1
+                int(input("\nPlease choose the most correct version! "))-1
             # NOTE: We subtract 1 to get the index back
-            deduped_authors_list += possible_duplicates[correct_name]
+            deduped_authors_list += [possible_duplicates[correct_name]]
+    print(deduped_authors_list)
     return deduped_authors_list
 
 
@@ -154,9 +183,25 @@ if __name__ == "__main__":
     #print(lookup_dict1)
     #lookup_dict2 = lookup_data("isbn", 9781569702826)
     #print(lookup_dict2)
-    combined_authors_cleaned = _check_duplicate_authors(["Jhon Mediema",
-                                                         "Adam Smith",
-                                                         "Frank Applebaum",
-                                                         "ADAM SMITH",
-                                                         "Michael Chrichton",
-                                                         "Adam smith"])
+    #combined_authors_cleaned1 = _check_duplicate_authors(["John Mediema",
+                                                         #"Adam Smith",
+                                                         #"Frank Applebaum",
+                                                         #"ADAM SMITH",
+                                                         #"Michael Chrichton",
+                                                         #"Adam smith"])
+    combined_authors_cleaned2 = _check_duplicate_authors(["Osamu Tezuka",
+                                                          "Markus Zusak",
+                                                          "OSAMU TEZUKA",
+                                                          "MAMORU NAGANO",
+                                                          "John Mediema",
+                                                          "Adam Smith",
+                                                          "Frank Applebaum",
+                                                          "ADAM SMITH",
+                                                          "Michael Chrichton",
+                                                          "Adam smith",
+                                                          "John Mediema",
+                                                          "Adam Smith",
+                                                          "Frank Applebaum",
+                                                          "ADAM SMITH",
+                                                          "Michael Chrichton",
+                                                          "Adam smith"])
