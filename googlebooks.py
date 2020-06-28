@@ -40,6 +40,7 @@ def get_googlebooks_data(idtype: str, book_id: int) -> dict:
         googlebooks_data_json -- the dictionary containing the parsed JSON
         metadata about the book
     """
+    idtype = idtype.lower()
     from requests import get
     from json import loads
     googlebooks_request_result = get('https://www.googleapis.com/books/v1/'

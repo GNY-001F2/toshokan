@@ -32,8 +32,8 @@ def lookup_data(idtype: str, bookid: int) -> dict:
     '''
     # NOTE: Open Library uses uppercase idtypes, while Google Books uses
     # lowercase.
-    olib_metadata = olib(idtype.upper(), bookid)
-    gbook_metadata = gbook(idtype.lower(), bookid)
+    olib_metadata = olib(idtype, bookid)
+    gbook_metadata = gbook(idtype, bookid)
     # prh_results = prh(idtype, bookid)
     if olib_metadata == gbook_metadata:
         # If they are equivalent do nothing
@@ -78,9 +78,6 @@ def merge_data(gbook_metadata: dict, olib_metadata: dict) -> dict:
         final_result['authors'] = _merge_authors(olib_metadata['authors'],
                                                  gbook_metadata['authors'])
     if 'identifiers' in attrs_to_be_examined:
-        print("The following identifier types have not matched:")
-        for id_type in mismatched_id_types:
-            print(f'{id_type}')
         attrs_to_be_examined.remove('identifiers')
         final_result['identifiers'] = \
             _merge_identifiers(olib_metadata['identifiers'],
@@ -92,9 +89,8 @@ def merge_data(gbook_metadata: dict, olib_metadata: dict) -> dict:
             print(index, value, sep='. ', end=" ")
         print("")
         while True:
-            chosen_value = str(int(input(f'Please choose which {attr} '
-                                         'is to be kept: ')) - 1)
-            if chosen_value < 0 or chosen_value > 1:
+            chosen_value = input(f'Please choose which {attr} is to be kept: ')
+            if chosen_value not in ['1', '2']:
                 print("Invalid entry. Please choose from the options shown!")
                 continue
             final_result[attr] = compared_values[chosen_value]
@@ -216,47 +212,16 @@ def _merge_identifiers(olib_identifiers: dict,
 
 
 if __name__ == "__main__":
-    #olib_dict = olib("ISBN", 9780980200447)
-    #print(olib_dict)
-    #gbook_dict = gbook("isbn", 9780980200447)
-    #print(gbook_dict)
-    #lookup_dict1 = lookup_data("isbn", 9780980200447)
-    #print(lookup_dict1)
-    #lookup_dict2 = lookup_data("isbn", 9781569702826)
-    #print(lookup_dict2)
-    #combined_authors_cleaned1 = _check_duplicate_authors(["John Mediema",
-                                                         #"Adam Smith",
-                                                         #"Frank Applebaum",
-                                                         #"ADAM SMITH",
-                                                         #"Michael Chrichton",
-                                                         #"Adam smith"])
-    #combined_authors_cleaned2 = _check_duplicate_authors(sorted(set( \
-                                                         #["Osamu Tezuka",
-                                                          #"Markus Zusak",
-                                                          #"OSAMU TEZUKA",
-                                                          #"MAMORU NAGANO",
-                                                          #"John Mediema",
-                                                          #"Adam Smith",
-                                                          #"Frank Applebaum",
-                                                          #"ADAM SMITH",
-                                                          #"Michael Chrichton",
-                                                          #"Adam smith",
-                                                          #"John Mediema",
-                                                          #"Adam Smith",
-                                                          #"Frank Applebaum",
-                                                          #"ADAM SMITH",
-                                                          #"Michael Chrichton",
-                                                          #"Adam smith"])))
-    #print(combined_authors_cleaned2)
-    #o_dict = {'lccn': "1284587",
-              #'isbn_13': "1234567891012",
-              #'isbn_10': "0123456789",
-              #'oclc': "N/A",
-              #'issn': "N/A"}
-    #g_dict = {'lccn': "N/A",
-              #'isbn_13': "123456878123",
-              #'isbn_10': "123456789",
-              #'oclc': "N/A",
-              #'issn': "N/A"}
-    #identifiers_merged = _merge_identifiers(o_dict, g_dict)
-    #print(identifiers_merged)
+    isbn_13s = [
+        9780980200447,  # Slow Reading by John Miedema
+        9781569702826,  # Barbara by Osamu Tezuka
+        9780007934393,  # The Aeneid by Virgil
+        9780752858586,  # The Chancellor Manuscript by Robert Ludlum
+        9788175993679,  # The Count of Monte Cristo by Alexandre Dumas
+        9780718154189,  # Devil May Care by Sebastian Faulks
+        9780008241902,  # Dragon Teeth by Michael Crichton
+        9780857525956,  # The Bridge of Clay by Marcus Zusak
+        ]
+    for isbn in isbn_13s:
+        lookup_dict = lookup_data("isbn", isbn)
+        print(lookup_dict)

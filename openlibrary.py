@@ -35,6 +35,7 @@ def get_openlib_data(idtype: str, book_id: int) -> dict:
         openlib_data_json -- the dictionary containing the parsed JSON metadata
                              about the book
     """
+    idtype = idtype.upper()
     from requests import get
     from json import loads
     openlib_request_url = 'https://openlibrary.org/api/books'
