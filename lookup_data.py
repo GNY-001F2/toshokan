@@ -1,4 +1,4 @@
-# toshokan 
+# toshokan
 # Copyright (C) 2019 Aayush Agarwal
 #
 # This program is free software: you can redistribute it and/or modify
@@ -26,9 +26,9 @@ def lookup_data(idtype: str, bookid: int) -> dict:
     # NOTE: Function arguments as yet undecided
     '''
     Attempt to grab the relevant information from different databases.
-    If data is not found in one, call next database until a result is found.
-    Then return the data and the database it was found in in a dict, for that
-    any book can use for its __init__()
+    Currently only Open Library and Google Books are implemented.
+    Compare the data and attempt to fill in the blanks for a more complete
+    record. Return the data in a dictionary.
     '''
     # NOTE: Open Library uses uppercase idtypes, while Google Books uses
     # lowercase.
@@ -44,28 +44,34 @@ def lookup_data(idtype: str, bookid: int) -> dict:
         final_result = gbook_metadata
     else:
         # If they are not equivalent, merge the data
-        print("Merging results:")
-        final_result = merge(gbook_metadata, olib_metadata)
+        print("Inidentical data found. Merging results:")
+        final_result = merge_data(gbook_metadata, olib_metadata)
     return final_result
 
 
-def merge(gbook_metadata: dict, olib_metadata: dict) -> dict:
+def merge_data(gbook_metadata: dict, olib_metadata: dict) -> dict:
     # TODO: prh_metadata:
     '''
-    Compares the metadata given by 
+    Compares the metadata given by Google Books and Open Library and merges
+    them. In case of conflicts, the user is asked to select the correct item.
+
+    gbook_metadata --
+    olib_metadata --
     '''
     attrs_to_be_examined = []  # Contains all the tags to be matched
     final_result = {}  # Contains the merged data
+    # IF a tag (attr) from the Open Library data matches the corresponding
+    # tag from Google Books, we directly add it to final_result
+    # Otherwise we add the tag to the list of tags that need to be matched.
     for attr in olib_metadata:
         if olib_metadata[attr] == gbook_metadata[attr]:
             final_result[attr] = olib_metadata[attr]
         else:
-            attrs_to_be_examined += [attr]
+            attrs_to_be_examined.append(attr)
     print("The following tags have not matched in the compared results:\n")
     for attr in attrs_to_be_examined:
         print(f'{attr}')
     authorlist = []
-    pick_authors = False
     print("Please select which data is to be kept.\n")
     if 'authors' in attrs_to_be_examined:
         attrs_to_be_examined.remove('authors')
@@ -83,41 +89,42 @@ def merge(gbook_metadata: dict, olib_metadata: dict) -> dict:
         print(f'Current item to be merged is {attr}')
         compared_values = {'1': olib_metadata[attr], '2': gbook_metadata[attr]}
         for index, value in compared_values.items():
-            print(index, value, sep='. ')
-        final_result[attr] = compared_values[input('Please choose which '
-                                                   f'{attr} is to be kept: ')]
+            print(index, value, sep='. ', end=" ")
+        print("")
+        while True:
+            chosen_value = str(int(input(f'Please choose which {attr} '
+                                         'is to be kept: ')) - 1)
+            if chosen_value < 0 or chosen_value > 1:
+                print("Invalid entry. Please choose from the options shown!")
+                continue
+            final_result[attr] = compared_values[chosen_value]
+            break
     return final_result
 
 
 def _merge_authors(olib_authors: list, gbook_authors: list) -> list:
     # set() will merge all author names except when there is a case mismatch,
     # which we will have to do manually
-    combined_authors = sorted(set(olib_authors,gbook_authors))
+    combined_authors = sorted(set(olib_authors, gbook_authors))
     combined_authors_deduped = _check_duplicate_authors(combined_authors)
     return combined_authors_deduped
 
 
 def _check_duplicate_authors(combined_authors: list) -> list:
-    #print(combined_authors)
     combined_authors_len = len(combined_authors)
-    #print(combined_authors_len)
     deduped_authors_list = []
-    #c_a_l_range_j = range(combined_authors_len-1, -1, -1)
     while combined_authors_len > 0:
         # First consume the item at the first index. We want to check all
         # other values against this item and flag duplicates.
         possible_duplicates = [combined_authors[0]]
-        #print(possible_duplicates)
         combined_authors.remove(combined_authors[0])
-        #print(combined_authors)
         combined_authors_len = len(combined_authors)
-        #print(combined_authors_len)
         # Next, we make sure that the list is not empty.
         if combined_authors_len == 0:
             # At this point it should not be possible for possible_duplicates
             # to have more than one value, so we can just add it and break out
-            # of this loop
-            deduped_authors_list += possible_duplicates
+            # of this loop if all names in combined_authors have been exhausted
+            deduped_authors_list.extend(possible_duplicates)
             break
         # If the list is not empty, then we compare the value in
         # possible_duplicates with the remaining values in the list using a
@@ -125,31 +132,43 @@ def _check_duplicate_authors(combined_authors: list) -> list:
         i = 0
         while i < combined_authors_len:
             # If the value matches, then we add it to possible_duplicates and
-            # remove it from the list
+            # remove it from the list.
+            # Otherwise we iterate to the next item in the list.
             if possible_duplicates[0].lower() == combined_authors[i].lower():
-                #if combined_authors[i] not in possible_duplicates:
-                possible_duplicates += [combined_authors[i]]
-                #print(possible_duplicates)
+                # While we _can_ check if an identical same name is already
+                # present in possible_duplicates, _check_duplicate_authors()
+                # works under the assumption that the data passed to it is
+                # already sorted and naively deduplicated.
+                possible_duplicates.append(combined_authors[i])
                 combined_authors.remove(combined_authors[i])
                 combined_authors_len = len(combined_authors)
             else:
                 i += 1
         p_d_len = len(possible_duplicates)
         if p_d_len == 1:
-            deduped_authors_list += possible_duplicates
+            deduped_authors_list.extend(possible_duplicates)
         elif p_d_len > 1:
-            p_d_l_range = range(p_d_len)
             print(f"Duplicates found for: {possible_duplicates[0]}")
-            j=0
+            j = 0
             while j < p_d_len:
                 # NOTE: More intuitive for a user to choose from 1 to x
                 print(f'{(j+1)}. {possible_duplicates[j]}', end=" ")
                 j += 1
-            correct_name = \
-                int(input("\nPlease choose the most correct version! "))-1
-            # NOTE: We subtract 1 to get the index back
-            deduped_authors_list += [possible_duplicates[correct_name]]
-    print(deduped_authors_list)
+            print("")
+            while True:
+                correct_name = \
+                    int(input("Please choose the most correct "
+                              "version! ")) - 1
+                # NOTE: We subtract 1 to get the index back
+                # If the user gives an invalid input, we inform him of the
+                # invalid input and ask him to re-enter. Don't wan the program
+                # crashing because of an out_of_range error.
+                if correct_name < 0 or correct_name >= p_d_len:
+                    print("Invalid entry. Please choose from the options "
+                          "shown!")
+                    continue
+                deduped_authors_list.append(possible_duplicates[correct_name])
+                break
     return deduped_authors_list
 
 
@@ -172,6 +191,28 @@ def _merge_identifiers(olib_identifiers: dict,
         else:
             identifiers_match = False
             mismatched_id_types.append(id_type)
+    if not identifiers_match:
+        print("The following identifiers have not matched: ")
+        for id_type in mismatched_id_types:
+            print(id_type, end=' ')
+        print("")
+        for id_type in mismatched_id_types:
+            print(f"Showing found values for the idenifier \'{id_type}\'")
+            id_type_options = {'1': olib_identifiers[id_type],
+                               '2': gbook_identifiers[id_type]}
+            for index, identifier in id_type_options.items():
+                print(index, identifier, sep='. ', end=" ")
+            print("")
+            while True:
+                chosen_value = input(f"Please choose the correct value: ")
+                if chosen_value not in ['1', '2']:
+                    print("Invalid entry. Please choose from the "
+                          "options shown!")
+                    continue
+                final_result_identifiers[id_type] = \
+                    id_type_options[str(chosen_value)]
+                break
+        return final_result_identifiers
 
 
 if __name__ == "__main__":
@@ -189,19 +230,33 @@ if __name__ == "__main__":
                                                          #"ADAM SMITH",
                                                          #"Michael Chrichton",
                                                          #"Adam smith"])
-    combined_authors_cleaned2 = _check_duplicate_authors(["Osamu Tezuka",
-                                                          "Markus Zusak",
-                                                          "OSAMU TEZUKA",
-                                                          "MAMORU NAGANO",
-                                                          "John Mediema",
-                                                          "Adam Smith",
-                                                          "Frank Applebaum",
-                                                          "ADAM SMITH",
-                                                          "Michael Chrichton",
-                                                          "Adam smith",
-                                                          "John Mediema",
-                                                          "Adam Smith",
-                                                          "Frank Applebaum",
-                                                          "ADAM SMITH",
-                                                          "Michael Chrichton",
-                                                          "Adam smith"])
+    #combined_authors_cleaned2 = _check_duplicate_authors(sorted(set( \
+                                                         #["Osamu Tezuka",
+                                                          #"Markus Zusak",
+                                                          #"OSAMU TEZUKA",
+                                                          #"MAMORU NAGANO",
+                                                          #"John Mediema",
+                                                          #"Adam Smith",
+                                                          #"Frank Applebaum",
+                                                          #"ADAM SMITH",
+                                                          #"Michael Chrichton",
+                                                          #"Adam smith",
+                                                          #"John Mediema",
+                                                          #"Adam Smith",
+                                                          #"Frank Applebaum",
+                                                          #"ADAM SMITH",
+                                                          #"Michael Chrichton",
+                                                          #"Adam smith"])))
+    #print(combined_authors_cleaned2)
+    #o_dict = {'lccn': "1284587",
+              #'isbn_13': "1234567891012",
+              #'isbn_10': "0123456789",
+              #'oclc': "N/A",
+              #'issn': "N/A"}
+    #g_dict = {'lccn': "N/A",
+              #'isbn_13': "123456878123",
+              #'isbn_10': "123456789",
+              #'oclc': "N/A",
+              #'issn': "N/A"}
+    #identifiers_merged = _merge_identifiers(o_dict, g_dict)
+    #print(identifiers_merged)
