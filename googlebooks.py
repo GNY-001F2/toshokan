@@ -134,11 +134,11 @@ def process_googlebooks_data(googlebooks_data_json: dict) -> dict:
         relevant_metadata['publish_date'] = "UNKNOWN"
     try:
         identifiers = {
-            'lccn': "N/A",
-            'isbn_13': "N/A",  # WE ALREADY KNOW THAT LCCN and OCLC
-            'isbn_10': "N/A",  # ARE NOT PRESENT IN THE JSON DATA
-            'oclc': "N/A",
-            'issn': "N/A"
+            'lccn': None,
+            'isbn_13': None,  # WE ALREADY KNOW THAT LCCN and OCLC
+            'isbn_10': None,  # ARE NOT PRESENT IN THE JSON DATA
+            'oclc': None,
+            'issn': None
         }
         # A static version to check if the results were actually empty
         noidentifiers = identifiers.copy()
@@ -172,7 +172,7 @@ def process_googlebooks_data(googlebooks_data_json: dict) -> dict:
         relevant_metadata['pages'] = googlebooks_data['pageCount']
     except KeyError:
         logger.warning("WARNING: The number of pages is unknown!")
-        relevant_metadata['pages'] = -1
+        relevant_metadata['pages'] = 0
     return relevant_metadata
 
 

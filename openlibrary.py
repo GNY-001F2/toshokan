@@ -123,7 +123,7 @@ def process_openlib_data(openlib_data_json: dict) -> dict:
             identifiers[id_type] = openlib_identifiers[id_type][0]
         except KeyError:
             logger.warning(f"WARNING: There is no {id_type} for this book.")
-            identifiers[id_type] = "N/A"
+            identifiers[id_type] = None
             # If openlib_data[identifiers] does not contain data for a type of
             # ID we are supporting, then we append it with ["N/A"]
             # NOTE: There are some books in the Open Library database that
@@ -153,11 +153,11 @@ def process_openlib_data(openlib_data_json: dict) -> dict:
         except KeyError:
             logger.warning("WARNING: The key \'pagination\' was also not"
                            "found!\nPage count unknown!")
-            relevant_metadata['pages'] = -1
+            relevant_metadata['pages'] = 0
     return relevant_metadata
 
 
-def openlibrary_results(idtype='ISBN', book_id=-1) -> dict:
+def openlibrary_results(idtype='ISBN', book_id=0) -> dict:
     """
     Recieves search query and passes it to _get_openlib_data() to get the data
     from The Open Library.
@@ -167,6 +167,8 @@ def openlibrary_results(idtype='ISBN', book_id=-1) -> dict:
     """
     # TODO: Check validity of input data. ISBNs should be 10 or 13 digits long
     # Similar rules likely exist for other valid search options
+    if idtype == 'ISBN' and book_id <= 0:
+        return {}
     olib_data = get_openlib_data(idtype, book_id)
     olib_data_processed = process_openlib_data(olib_data)
     return olib_data_processed

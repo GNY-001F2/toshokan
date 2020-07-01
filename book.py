@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 class book:
     '''
     A book contains some information about itself. This book class does the
@@ -36,47 +37,57 @@ class book:
     '''
 
     def __init__(self,
-                 book_id: int = 0,  # 0 represents object not extracted from db
                  title: str = "UNKNOWN",
                  authors: list = ["UNKNOWN"],
                  publisher: str = "UNKNOWN",
                  publish_date: str = "UNKNOWN",
                  identifiers: dict = {
-                     'lccn': "N/A",
-                     'isbn_13': "N/A",
-                     'isbn_10': "N/A",
-                     'oclc': "N/A",
-                     'issn': "N/A"  # Magazines use this.
+                     'lccn': None,
+                     'isbn_13': None,
+                     'isbn_10': None,
+                     'oclc': None,
+                     'issn': None  # Magazines use this.
                  },
-                 pages: int = 0):  # 0 represents unknown
+                 pages: int = 0,  # 0 represents unknown
+                 book_id: int = 0):  # 0 represents book not extracted from db
         '''
         __init__() is used to create a book which contains the relevant
         information about it.
         '''
         # Let's add each id_type to the list of identifiers
         self.identifiers = {}
-        for id_type in ['lccn', 'isbn_13', 'isbn_10', 'oclc', 'issn']:
-            try:
-                self.identifiers[id_type] = identifiers[id_type]
-            except KeyError:
-                self.identifiers[id_type] = ["N/A"]
-            # Any other error is beyond the scope of this at the moment
-        # NOTE:this will be updated by whatever process adds the book to the
-        # collection (TODO)
-        self.__book_id = book_id
+        for identifier in identifiers:
+            self.identifiers[identifier] = identifiers[identifier]
+        self._book_id = book_id
         self.title = title
         self.authors = []
-        for author in authors:
-            self.authors.append(author)
+        self.authors.extend(authors)
         self.pages = pages
-        self.publishers = publishers
+        self.publisher = publisher
         self.publish_date = publish_date
 
     @property  # make this read-only; the database will assign an ID
     def book_id(self):
-        return self.__book_id
+        return self._book_id
 
 
 if __name__ == '__main__':
-    a = book()
-    print(a.book_id)
+    import lookup_data as ld
+    #relevant_metadata = ld.lookup_data('isbn', 9780980200447)
+    #b = book(relevant_metadata)
+    #print(b.book_id, b.title, b.authors, b.publisher, b.identifiers,
+          #b.publish_date, b.pages, sep=" ")
+    c = book("Slow Reading",
+             ['John Miedema'],
+             'Litwin Books Llc',
+             'March 2009',
+             {
+                 'oclc': 297222669,
+                 'lccn': 2008054742,
+                 'isbn_13': 9780980200447,
+                 'issn': None,
+                 'isbn_10': 1936117363
+                     },
+             92)
+    print(c.book_id, c.title, c.authors, c.publisher, c.identifiers,
+          c.publish_date, c.pages, sep=" ")

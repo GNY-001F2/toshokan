@@ -20,9 +20,9 @@
 
 from openlibrary import openlibrary_results as olib
 from googlebooks import googlebooks_results as gbook
+from book import book
 
-
-def lookup_data(idtype: str, bookid: int) -> dict:
+def lookup_data(idtype: str, bookid: int) -> book:
     # NOTE: Function arguments as yet undecided
     '''
     Attempt to grab the relevant information from different databases.
@@ -46,7 +46,17 @@ def lookup_data(idtype: str, bookid: int) -> dict:
         # If they are not equivalent, merge the data
         print("Inidentical data found. Merging results:")
         final_result = merge_data(gbook_metadata, olib_metadata)
-    return final_result
+        print(final_result)
+    if final_result == {}:
+        final_book = book(book_id=-1)
+    else:
+        final_book = book(final_result['title'],
+                          final_result['authors'],
+                          final_result['publisher'],
+                          final_result['publish_date'],
+                          final_result['identifiers'],
+                          final_result['pages'])
+    return final_book
 
 
 def merge_data(gbook_metadata: dict, olib_metadata: dict) -> dict:
@@ -178,9 +188,9 @@ def _merge_identifiers(olib_identifiers: dict,
     identifiers_match = True
     mismatched_id_types = []
     for id_type in ['isbn_10', 'isbn_13', 'issn']:
-        if olib_identifiers[id_type] == "N/A":
+        if olib_identifiers[id_type] == None:
             final_result_identifiers[id_type] = gbook_identifiers[id_type]
-        elif gbook_identifiers[id_type] == "N/A":
+        elif gbook_identifiers[id_type] == None:
             final_result_identifiers[id_type] = olib_identifiers[id_type]
         elif olib_identifiers[id_type] == gbook_identifiers[id_type]:
             final_result_identifiers[id_type] = olib_identifiers[id_type]
