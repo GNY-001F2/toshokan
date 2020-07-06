@@ -46,7 +46,6 @@ def lookup_data(idtype: str, bookid: int) -> book:
         # If they are not equivalent, merge the data
         print("Inidentical data found. Merging results:")
         final_result = merge_data(gbook_metadata, olib_metadata)
-        print(final_result)
     if final_result == {}:
         final_book = book(book_id=-1)
     else:

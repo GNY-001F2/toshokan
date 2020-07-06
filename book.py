@@ -70,6 +70,16 @@ class book:
     def book_id(self):
         return self._book_id
 
+    def __str__(self):
+        return str({
+            'book_id': self.book_id,
+            'title': self.title,
+            'authors': self.authors,
+            'publisher': self.publisher,
+            'publish_date': self.publish_date,
+            'identifiers': self.identifiers,
+            'pages': self.pages
+            })
 
 if __name__ == '__main__':
     import lookup_data as ld

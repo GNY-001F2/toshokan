@@ -167,7 +167,7 @@ def openlibrary_results(idtype='ISBN', book_id=0) -> dict:
     """
     # TODO: Check validity of input data. ISBNs should be 10 or 13 digits long
     # Similar rules likely exist for other valid search options
-    if idtype == 'ISBN' and book_id <= 0:
+    if idtype == 'ISBN' and int(book_id) <= 0:
         return {}
     olib_data = get_openlib_data(idtype, book_id)
     olib_data_processed = process_openlib_data(olib_data)
