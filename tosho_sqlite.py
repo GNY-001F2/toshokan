@@ -126,6 +126,7 @@ def add_record_to_database(db_cursor: sqlite3.Cursor,
     add_volume_library_relation = (db_cursor, volume_id, library_id)
     return db_cursor
 
+
 def add_book_to_database(db_cursor: sqlite3.Cursor, title: str,
                          publish_date: str, pages: int, identifiers: dict,
                          publisher_id: int, author_ids: int) -> int:
@@ -134,6 +135,7 @@ def add_book_to_database(db_cursor: sqlite3.Cursor, title: str,
     db_cursor = add_authors_book_relation(db_cursor, author_ids, book_id)
     db_cursor = add_publisher_book_relation(db_cursor, publisher_id, book_id)
     return book_id
+
 
 def add_publisher_to_table(db_cursor: sqlite3.Cursor, name: str) -> int:
     '''
@@ -173,12 +175,13 @@ def add_author_to_table(db_cursor: sqlite3.Cursor, name: str) -> int:
     try:
         db_cursor.execute("INSERT INTO Authors(Name) VALUES (?)", [name])
         db_cursor.connection.commit()
-    except:
+    except sqlite3.IntegrityError:
         logger.info(f"The author {name} already exists in the database.")
     db_cursor.execute("SELECT AuthorID FROM Authors WHERE Name=?", [name])
     author_row = db_cursor.fetchone()
     author_id = int(author_row[0])
     return author_id
+
 
 def add_volume_to_table(db_cursor: sqlite3.Cursor, book_id: int) -> int:
     '''
@@ -300,6 +303,7 @@ def add_authors_book_relation(db_cursor: sqlite3.Cursor, author_ids: list,
         db_cursor = add_author_book_relation(db_cursor, author_id, book_id)
     return db_cursor
 
+
 def add_author_book_relation(db_cursor, author_id: str,
                              book_id: int):
     try:
@@ -310,6 +314,7 @@ def add_author_book_relation(db_cursor, author_id: str,
         logger.error("This AuthorID and BookID relation already exists! "
                      "Skipping!")
     return db_cursor
+
 
 def add_publisher_book_relation(db_cursor: sqlite3.Cursor, publisher_id: int,
                                 book_id: int) -> sqlite3.Cursor:
@@ -355,7 +360,8 @@ def add_volume_library_relation(db_cursor: sqlite3.Cursor, volume_id: int,
         db_cursor.connection.commit()
     except sqlite3.IntegrityError:
         logger.error("This volume is already stocked in a library! Cannot add "
-                     "it to another library.\nIf you wish to move the book to " "a different library, then remove it from the current "
+                     "it to another library.\nIf you wish to move the book to "
+                     "a different library, then remove it from the current "
                      "library first!")
     return db_cursor
 
