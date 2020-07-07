@@ -92,11 +92,9 @@ def create_new_database(db_path: str,
     }
     db_cursor.execute("BEGIN;")
     for table in create_table_instructions:
-        print(table)
         db_cursor.execute(create_table_instructions[table])
     db_cursor.execute("END;")
     library_id = add_library_to_table(db_cursor)  # Create the Local library
-    print(library_id)
     db_conn.commit()
     return db_conn
 
@@ -476,6 +474,11 @@ if __name__ == "__main__":
         9780718154189,  # Devil May Care by Sebastian Faulks
         9780008241902,  # Dragon Teeth by Michael Crichton
         9780857525956,  # The Bridge of Clay by Marcus Zusak
+        # Some other books by authors mentioned earlier
+        9780099544319,  # Congo by Michael Crichton
+        9781569703533,  # Under The Air by Osamu Tezuka
+        9781934287729,  # MW by Osamu Tezuka
+        9780312990701,  # The Bancroft Strategy by Robert Ludlum
     ]
     from lookup_data import lookup_data
     for isbn_13 in isbn_13s:

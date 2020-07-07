@@ -101,3 +101,4 @@ if __name__ == '__main__':
              92)
     print(c.book_id, c.title, c.authors, c.publisher, c.identifiers,
           c.publish_date, c.pages, sep=" ")
+    print(c)
