@@ -44,7 +44,7 @@ def lookup_data(idtype: str, bookid: int) -> book:
         final_result = gbook_metadata
     else:
         # If they are not equivalent, merge the data
-        print("Inidentical data found. Merging results:")
+        print("Non-identical data found. Merging results:")
         final_result = merge_data(gbook_metadata, olib_metadata)
     if final_result == {}:
         final_book = book(book_id=-1)
@@ -179,6 +179,7 @@ def _check_duplicate_authors(combined_authors: list) -> list:
 
 def _merge_identifiers(olib_identifiers: dict,
                        gbook_identifiers: dict) -> dict:
+    print("Merging identifiers.")
     final_result_identifiers = {}
     # We know that LCCN and OCLC data is not available in the Google Books
     # database, so we get this part done first.
@@ -217,7 +218,7 @@ def _merge_identifiers(olib_identifiers: dict,
                 final_result_identifiers[id_type] = \
                     id_type_options[str(chosen_value)]
                 break
-        return final_result_identifiers
+    return final_result_identifiers
 
 
 if __name__ == "__main__":
@@ -230,7 +231,8 @@ if __name__ == "__main__":
         9780718154189,  # Devil May Care by Sebastian Faulks
         9780008241902,  # Dragon Teeth by Michael Crichton
         9780857525956,  # The Bridge of Clay by Marcus Zusak
-        ]
+        9780099544319
+    ]
     for isbn in isbn_13s:
         lookup_dict = lookup_data("isbn", isbn)
         print(lookup_dict)

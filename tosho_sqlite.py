@@ -481,13 +481,15 @@ if __name__ == "__main__":
         9780312990701,  # The Bancroft Strategy by Robert Ludlum
     ]
     from lookup_data import lookup_data
+    from manual_entry import manual_entry
     for isbn_13 in isbn_13s:
         print(isbn_13)
         c = lookup_data("ISBN", isbn_13)
         db_cursor = db_conn.cursor()
-        if c.book_id >= 0:
-            db_cursor = add_record_to_database(db_cursor, c)
-            db_conn.commit()
+        if c.book_id < 0:
+            c = manual_entry()
+        db_cursor = add_record_to_database(db_cursor, c)
+        db_conn.commit()
         # db_cursor.execute("SELECT ")
     db_conn.commit()
     db_conn.close()
