@@ -120,8 +120,9 @@ def add_record_to_database(db_cursor: sqlite3.Cursor,
                                    author_ids)
     # Then create a volume for this book
     volume_id = add_volume_to_table(db_cursor, book_id)
+    print("add_volume_to_table")
     # Then add it to the library
-    add_volume_library_relation = (db_cursor, volume_id, library_id)
+    db_cursor = add_volume_library_relation(db_cursor, volume_id, library_id)
     return db_cursor
 
 
@@ -286,7 +287,6 @@ def add_book_to_table(db_cursor: sqlite3.Cursor, title: str, publish_date: str,
                                    isbn_13, issn, oclc, lccn])
     book_row = db_cursor.fetchone()
     book_id = book_row[0]
-    print(f"bookid: {type(book_id)}")
     return book_id
 
 # NOTE: Functions to create mappings between two tables here
@@ -478,7 +478,7 @@ if __name__ == "__main__":
         9780099544319,  # Congo by Michael Crichton
         9781569703533,  # Under The Air by Osamu Tezuka
         9781934287729,  # MW by Osamu Tezuka
-        9780312990701,  # The Bancroft Strategy by Robert Ludlum
+        9780312990701  # The Bancroft Strategy by Robert Ludlum
     ]
     from lookup_data import lookup_data
     from manual_entry import manual_entry
@@ -490,6 +490,7 @@ if __name__ == "__main__":
             c = manual_entry()
         db_cursor = add_record_to_database(db_cursor, c)
         db_conn.commit()
+        print(c)
         # db_cursor.execute("SELECT ")
     db_conn.commit()
     db_conn.close()
